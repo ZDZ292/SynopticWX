@@ -3,33 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>METEO-ONYX // Severe Weather Center</title>
+    <title>SLATEWEATHER PRO // Severe Weather Center</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header class="nav-container">
-        <nav class="tab-bar">
-            <button class="tab-btn active" onclick="switchTab('tab-dashboard')">Dashboard</button>
-            <button class="tab-btn" onclick="switchTab('tab-hourly')">72-Hour</button>
-            <button class="tab-btn" onclick="switchTab('tab-daily')">7-Day</button>
-            <button class="tab-btn" onclick="switchTab('tab-radar')">Live Radar</button>
-            <button class="tab-btn" onclick="switchTab('tab-spc')">SPC / WPC Briefing</button>
-        </nav>
+        <div class="header-controls">
+            <div class="search-box">
+                <input type="text" id="location-input" placeholder="Enter City, State (e.g. Chicago, IL)...">
+                <button onclick="handleSearch()">Search</button>
+            </div>
+            
+            <nav class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('tab-dashboard')">Dashboard</button>
+                <button class="tab-btn" onclick="switchTab('tab-hourly')">72-Hour</button>
+                <button class="tab-btn" onclick="switchTab('tab-daily')">7-Day</button>
+                <button class="tab-btn" onclick="switchTab('tab-radar')">Live Radar</button>
+                <button class="tab-btn" onclick="switchTab('tab-spc')">SPC Briefing</button>
+            </nav>
+        </div>
     </header>
 
     <main class="main-content">
         <section id="tab-dashboard" class="tab-content active-content">
             <div class="dashboard-grid">
                 <div class="panel main-panel">
-                    <div class="panel-header">Current Conditions</div>
+                    <div class="panel-header" id="station-header">Current Conditions</div>
                     <div class="core-weather">
                         <div class="icon-frame">
                             <img id="current-twc-icon" src="icons/na.png" alt="Condition Icon" class="twc-icon">
                         </div>
                         <div class="temp-block">
                             <h1 id="obs-temp">--°F</h1>
-                            <p id="obs-phrase">Synchronizing data feeds...</p>
+                            <p id="obs-phrase">Initializing data streams...</p>
                         </div>
                     </div>
                 </div>
@@ -39,9 +46,9 @@
                     <table class="data-table">
                         <tr><td>Dewpoint</td><td id="obs-dewpoint" class="value">--°F</td></tr>
                         <tr><td>Heat Index</td><td id="obs-heatindex" class="value">--°F</td></tr>
-                        <tr><td>UV Index</td><td id="obs-uv" class="value">--</td></tr>
-                        <tr><td>Rainfall (24h)</td><td id="obs-rain" class="value">0.00 in</td></tr>
-                        <tr><td>Snow Accumulation</td><td id="obs-snow" class="value">0.0 in</td></tr>
+                        <tr><td>Wind Velocity</td><td id="obs-wind" class="value">-- mph</td></tr>
+                        <tr><td>Rainfall (Hourly)</td><td id="obs-rain" class="value">0.00 in</td></tr>
+                        <tr><td>Relative Humidity</td><td id="obs-humidity" class="value">--%</td></tr>
                     </table>
                 </div>
             </div>
@@ -74,9 +81,9 @@
             <div class="spc-dashboard">
                 <div class="spc-column">
                     <div class="panel active-alerts-panel">
-                        <div class="panel-header text-alert">Active Convective Watches & MCD/MPD Feed</div>
+                        <div class="panel-header text-alert">Local Active Hazards Feed</div>
                         <div id="live-bulletins" class="bulletin-list">
-                            <p class="loading-text">Parsing live NOAA telecommunication wires...</p>
+                            <p class="loading-text">Parsing local NOAA alert lines...</p>
                         </div>
                     </div>
                     <div class="panel">
