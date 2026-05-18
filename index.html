@@ -2,122 +2,99 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLATEWEATHER PRO // Media Control Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SLATEWEATHER PRO</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="twc-header">
-        <div class="header-inner">
-            <div class="brand-block">
-                <span class="twc-logo">TWC</span>
-                <h1 id="station-header" class="location-title">Current Conditions // New York, NY</h1>
+    <header class="twc-app-header">
+        <div class="header-top-row">
+            <div class="twc-logo-badge">TWC</div>
+            <div class="search-pill-container">
+                <input type="text" id="location-input" placeholder="New York City">
+                <button onclick="handleSearch()" class="search-trigger">🔍</button>
             </div>
-            
-            <div class="search-bar-container">
-                <input type="text" id="location-input" placeholder="Search City, State, or Zip Code...">
-                <button onclick="handleSearch()" class="search-submit-btn">Search</button>
+            <div class="app-action-icons">
+                <span class="icon-bell">🔔</span>
+                <span class="icon-profile">👤</span>
             </div>
         </div>
         
-        <nav class="twc-nav">
-            <div class="nav-scroll-wrapper">
-                <button class="nav-link active" onclick="switchTab('tab-dashboard')">Today</button>
-                <button class="nav-link" onclick="switchTab('tab-hourly')">Hourly</button>
-                <button class="nav-link" onclick="switchTab('tab-daily')">7-Day</button>
-                <button class="nav-link" onclick="switchTab('tab-radar')">Radar</button>
-                <button class="nav-link" onclick="switchTab('tab-spc')">Severe Briefing</button>
+        <nav class="twc-pill-nav">
+            <div class="nav-track">
+                <button class="nav-pill active" onclick="switchTab('tab-dashboard')">Today</button>
+                <button class="nav-pill" onclick="switchTab('tab-hourly')">Hourly</button>
+                <button class="nav-pill" onclick="switchTab('tab-daily')">Daily</button>
+                <button class="nav-pill" onclick="switchTab('tab-radar')">Radar</button>
+                <button class="nav-pill" onclick="switchTab('tab-spc')">Storms</button>
             </div>
         </nav>
     </header>
 
-    <main class="twc-container">
+    <main class="app-viewport">
+        
         <section id="tab-dashboard" class="tab-content active-content">
-            <div class="twc-flexible-grid">
+            <div class="twc-card hero-display">
+                <div class="hero-top-info">
+                    <div class="temperature-delivery">
+                        <span id="obs-temp" class="giant-degrees">--°</span>
+                        <p id="obs-phrase" class="condition-string">Syncing networks...</p>
+                    </div>
+                    <div class="animated-icon-delivery">
+                        <img id="current-twc-icon" src="https://basmilius.github.io/weather-icons/production/fill/all/not-available.svg" alt="Animated State" class="main-animated-svg">
+                    </div>
+                </div>
                 
-                <div class="twc-card hero-card">
-                    <div class="hero-main">
-                        <div class="hero-left">
-                            <span id="obs-temp" class="hero-degree">--°</span>
-                            <p id="obs-phrase" class="hero-condition">Initializing data feeds...</p>
-                        </div>
-                        <div class="hero-right">
-                            <img id="current-twc-icon" src="icons/na.png" alt="Condition" class="hero-icon-img">
-                        </div>
-                    </div>
-                    <div class="hero-footer-metrics">
-                        <div class="footer-stat"><span>Feels Like</span><strong id="obs-heatindex">--°</strong></div>
-                        <div class="footer-stat"><span>Wind Velocity</span><strong id="obs-wind">-- mph</strong></div>
-                        <div class="footer-stat"><span>Humidity</span><strong id="obs-humidity">--%</strong></div>
-                    </div>
+                <div class="hero-subline-metrics">
+                    <span id="obs-feels">Feels like --°</span>
+                    <span class="divider">|</span>
+                    <span id="obs-hi-lo">H: --° L: --°</span>
                 </div>
+            </div>
 
-                <div class="twc-card details-card">
-                    <h3 class="card-heading">Weather Details</h3>
-                    <div class="details-list">
-                        <div class="detail-row"><span>Dew Point</span><strong id="obs-dewpoint">--°F</strong></div>
-                        <div class="detail-row"><span>Precipitation (Hourly)</span><strong id="obs-rain">0.00 in</strong></div>
-                        <div class="detail-row"><span>National Warning System</span><strong class="text-alert">Monitoring Feed</strong></div>
-                    </div>
+            <div class="twc-card modular-details-box">
+                <h3 class="box-title">Today's Outlook Matrix</h3>
+                <div class="compact-grid-rows">
+                    <div class="metric-row"><span>Wind Velocity</span><strong id="obs-wind">-- mph</strong></div>
+                    <div class="metric-row"><span>Humidity Index</span><strong id="obs-humidity">--%</strong></div>
+                    <div class="metric-row"><span>Dew Point</span><strong id="obs-dewpoint">--°F</strong></div>
+                    <div class="metric-row"><span>Hourly Rainfall</span><strong id="obs-rain">0.00 in</strong></div>
                 </div>
-
             </div>
         </section>
 
         <section id="tab-hourly" class="tab-content">
             <div class="twc-card">
-                <h3 class="card-heading">72-Hour Chronological Forecast</h3>
-                <div id="hourly-container" class="twc-horizontal-scroll"></div>
+                <h3 class="box-title">72-Hour Continuous Timeline</h3>
+                <div id="hourly-container" class="app-horizontal-scroller"></div>
             </div>
         </section>
 
         <section id="tab-daily" class="tab-content">
             <div class="twc-card">
-                <h3 class="card-heading">7-Day Extended Outlook (Day & Night Tracking)</h3>
-                <div id="daily-container" class="twc-vertical-stack"></div>
+                <h3 class="box-title">Extended Multi-Day Forecast</h3>
+                <div id="daily-container" class="app-vertical-stack"></div>
             </div>
         </section>
 
         <section id="tab-radar" class="tab-content">
-            <div class="twc-card radar-card">
-                <h3 class="card-heading">Local Base Reflectivity Loop</h3>
-                <div class="responsive-iframe-container">
-                    <iframe id="radar-frame" src="https://radar.weather.gov/withandwithout.php?title=Radar%20Base%20Reflectivity" loading="lazy"></iframe>
+            <div class="twc-card zero-padding">
+                <div class="radar-box-wrapper">
+                    <iframe id="radar-frame" src="" loading="lazy"></iframe>
                 </div>
             </div>
         </section>
 
         <section id="tab-spc" class="tab-content">
-            <div class="twc-flexible-grid severe-split">
-                <div class="twc-card">
-                    <h3 class="card-heading text-alert">Active Grid Advisories</h3>
-                    <div id="live-bulletins" class="bulletin-scroller">
-                        <p class="loading-text">Parsing local NOAA alert lines...</p>
-                    </div>
-                </div>
-                <div class="twc-card">
-                    <h3 class="card-heading">Convective Outlook Map Feed</h3>
-                    <div class="custom-select-container">
-                        <select id="outlook-select" onchange="updateOutlookImage()">
-                            <optgroup label="Day 1 Hazards">
-                                <option value="day1otlk">Day 1 Categorical Outlook</option>
-                                <option value="day1torn">Day 1 Tornado Probability</option>
-                                <option value="day1wind">Day 1 Wind Probability</option>
-                                <option value="day1hail">Day 1 Hail Probability</option>
-                            </optgroup>
-                            <optgroup label="Day 2 Hazards">
-                                <option value="day2otlk">Day 2 Categorical Outlook</option>
-                                <option value="day2torn">Day 2 Tornado Probability</option>
-                                <option value="day2wind">Day 2 Wind Probability</option>
-                                <option value="day2hail">Day 2 Hail Probability</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    <img id="spc-outlook-img" src="https://www.spc.noaa.gov/products/outlook/day1otlk.gif" alt="Outlook Product" class="fluid-spc-img">
+            <div class="twc-card">
+                <h3 class="box-title text-danger">Active Regional Hazards Feed</h3>
+                <div id="live-bulletins" class="bulletin-board">
+                    <p class="status-msg">Listening to convective warning loops...</p>
                 </div>
             </div>
         </section>
+
     </main>
 
     <script src="app.js"></script>
