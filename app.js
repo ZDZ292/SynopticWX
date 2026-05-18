@@ -272,9 +272,31 @@ function getWmoPhraseString(code) {
     if (code === 77) return "Snow Grains";
     if (code >= 80 && code <= 82) return "Rain Showers";
     if (code === 85 || code === 86) return "Snow Showers";
-    if (code >= 95) return "Convective Thunderstorms";
-    return "Atmospheric Core";
+    if (code >= 95) return "Thunderstorms";
+    return "Clear";
 }
+
+function convertNwsUrlToWmoCode(url) {
+    if (!url) return 0;
+    const str = url.toLowerCase();
+    
+    if (str.includes("tornado")) return 99;
+    if (str.includes("tsra") || str.includes("thunderstorm") || str.includes("scttsra")) return 95;
+    if (str.includes("blizzard") || str.includes("snow")) return 73;
+    if (str.includes("fzra") || str.includes("sleet") || str.includes("mix")) return 66;
+    if (str.includes("rain") || str.includes("shra") || str.includes("hi_shwrs")) return 63;
+    if (str.includes("drizzle") || str.includes("minus_ra")) return 51;
+    if (str.includes("fog") || str.includes("haze") || str.includes("smoke")) return 45;
+    
+    // NWS Sky-Cover String Matching Rules
+    if (str.includes("bkn") || str.includes("ovc") || str.includes("cloudy")) return 3; 
+    if (str.includes("sct") || str.includes("partly")) return 2;                      
+    if (str.includes("few")) return 1;                                                
+    if (str.includes("skc") || str.includes("clear") || str.includes("sunny")) return 0; 
+    
+    return 0; 
+}
+
 
 async function syncActiveWarnings(lat, lon) {
     const box = document.getElementById("alert-feed-box");
