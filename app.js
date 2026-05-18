@@ -1,299 +1,205 @@
-let currentCoords = "40.7128,-74.0060"; // Base global anchor coordinates
-
-const secureHeaders = {
-    "User-Agent": "SlateWeatherPRO/5.0 (contact: github-deploy-matrix)"
-};
+// Base coordinate initialization parameter (Default: Evanston, IL)
+let activeCoordinates = "42.0451,-87.6877"; 
 
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("location-input").addEventListener("keypress", (e) => {
         if (e.key === "Enter") handleSearch();
     });
-    runPrimaryWeatherPipeline();
+    executeDataPipeline();
 });
 
-function switchSection(sectId) {
+function switchSection(targetId) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
     document.querySelectorAll('.section-pill').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     
-    document.getElementById(sectId).classList.add('active-view');
+    document.getElementById(targetId).classList.add('active-view');
     
-    // Sync both pill and bottom navigation buttons simultaneously
-    if (sectId === 'sec-today') {
-        document.querySelector('.section-pill[onclick*="sec-today"]').classList.add('active');
-        document.querySelector('.nav-item[onclick*="sec-today"]').classList.add('active');
-    } else if (sectId === 'sec-hourly') {
-        document.querySelector('.section-pill[onclick*="sec-hourly"]').classList.add('active');
-    } else if (sectId === 'sec-storms') {
-        document.querySelector('.section-pill[onclick*="sec-storms"]').classList.add('active');
-        document.querySelector('.nav-item[onclick*="sec-storms"]').classList.add('active');
-    } else if (sectId === 'sec-radar') {
-        document.querySelector('.nav-item[onclick*="sec-radar"]').classList.add('active');
-    }
-}
-
-// Quick smooth viewport scroll helper to mimic application behavior
-function sectionScroll(sectId) {
-    switchSection('sec-today');
-    setTimeout(() => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }, 50);
+    // Cross-bind navigation triggers
+    const pillBtn = document.querySelector(`.section-pill[onclick*="${targetId}"]`);
+    if (pillBtn) pillBtn.classList.add('active');
+    
+    const navBtn = document.querySelector(`.nav-item[onclick*="${targetId}"]`);
+    if (navBtn) navBtn.classList.add('active');
 }
 
 async function handleSearch() {
-    const term = document.getElementById("location-input").value.trim();
-    if (!term) return;
+    const query = document.getElementById("location-input").value.trim();
+    if (!query) return;
 
-    document.getElementById("obs-phrase").innerText = "Locating grid context...";
+    document.getElementById("obs-phrase").innerText = "Querying global stations...";
     
     try {
-        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(term)}&count=1&language=en&format=json`);
-        const data = await res.json();
+        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
+        const payload = await res.json();
 
-        if (!data.results || data.results.length === 0) {
-            document.getElementById("obs-phrase").innerText = "Location untracked.";
+        if (!payload.results || payload.results.length === 0) {
+            document.getElementById("obs-phrase").innerText = "Unknown location coordinates.";
             return;
         }
 
-        const match = data.results[0];
-        currentCoords = `${match.latitude.toFixed(4)},${match.longitude.toFixed(4)}`;
-        document.getElementById("location-input").placeholder = match.name;
+        const primaryMatch = payload.results[0];
+        activeCoordinates = `${primaryMatch.latitude.toFixed(4)},${primaryMatch.longitude.toFixed(4)}`;
+        document.getElementById("location-input").placeholder = primaryMatch.name;
         document.getElementById("location-input").value = "";
         
-        runPrimaryWeatherPipeline();
+        executeDataPipeline();
     } catch (err) {
-        document.getElementById("obs-phrase").innerText = "Geocoding connection lost.";
+        document.getElementById("obs-phrase").innerText = "Geocoding network stream broke.";
     }
 }
 
-async function runPrimaryWeatherPipeline() {
-    const lat = currentCoords.split(',')[0];
-    const lon = currentCoords.split(',')[1];
+function executeDataPipeline() {
+    const lat = activeCoordinates.split(',')[0];
+    const lon = activeCoordinates.split(',')[1];
     
-    document.getElementById("radar-frame").src = `https://radar.weather.gov/withandwithout.php?title=Radar&lat=${lat}&lon=${lon}`;
-    
-    let pipelineSuccess = false;
+    // Fix NWS 404 Radar breakdown using standard, stable interactive tile map frames
+    document.getElementById("radar-frame").src = `https://maps.weather.gov/rcm/index.html?zoom=8&lat=${lat}&lon=${lon}`;
 
+    fetchOpenMeteoTelemetry(lat, lon);
+    compileSPCOutlooks(lat, lon);
+}
+
+async function fetchOpenMeteoTelemetry(lat, lon) {
     try {
-        const pointRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`, { headers: secureHeaders });
-        const pointData = await pointRes.json();
-        
-        const stationRes = await fetch(pointData.properties.observationStations, { headers: secureHeaders });
-        const stationData = await stationRes.json();
-        
-        if (stationData.features && stationData.features.length > 0) {
-            const obsRes = await fetch(`${stationData.features[0].id}/observations/latest`, { headers: secureHeaders });
-            const obsData = await obsRes.json();
-            const p = obsData.properties;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,dew_point_2m&hourly=temperature_2m,weather_code,probability_of_precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timeformat=unixtime&timezone=auto`;
+        const res = await fetch(url);
+        const data = await res.json();
 
-            if (p.temperature.value !== null) {
-                renderNWSMetrics(p);
-                pipelineSuccess = true;
-            }
-        }
-        
-        executeTimelineFetch(pointData.properties.forecast, pointData.properties.forecastHourly);
+        processCurrentSnapshot(data.current);
+        processTimelineArrays(data.hourly, data.daily);
     } catch (err) {
-        console.warn("Primary database node reporting null telemetry. Engaging failback logic.");
+        document.getElementById("obs-phrase").innerText = "Telemetry terminal handshake failed.";
     }
-
-    // Emergency Core Fallback Stream (Runs instantly if airport telemetry goes offline)
-    if (!pipelineSuccess) {
-        try {
-            const fallback = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,probability_of_precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timeformat=unixtime&timezone=auto`);
-            const fallbackData = await fallback.json();
-            
-            renderFallbackMetrics(fallbackData.current);
-            renderFallbackTimelines(fallbackData.hourly, fallbackData.daily);
-        } catch (failErr) {
-            document.getElementById("obs-phrase").innerText = "All network pipelines rejected.";
-        }
-    }
-
-    syncActiveWarnings(lat, lon);
 }
 
-function renderNWSMetrics(p) {
-    const temp = p.temperature.value ? Math.round((p.temperature.value * 9/5) + 32) : 70;
-    const dew = p.dewpoint.value ? Math.round((p.dewpoint.value * 9/5) + 32) : 55;
-    const heat = p.heatIndex.value ? Math.round((p.heatIndex.value * 9/5) + 32) : temp;
-    const wind = p.windSpeed.value ? Math.round(p.windSpeed.value * 0.621371) : 0;
-    const rain = p.precipitationLastHour.value ? (p.precipitationLastHour.value / 25.4).toFixed(2) : "0.00";
-    const hum = p.relativeHumidity.value ? Math.round(p.relativeHumidity.value) : 50;
+function processCurrentSnapshot(c) {
+    const tempVal = Math.round(c.temperature_2m);
+    const feelsVal = Math.round(c.apparent_temperature);
+    const dewVal = Math.round(c.dew_point_2m);
+    const description = translateWMOCodeToText(c.weather_code);
 
-    document.getElementById("obs-temp").innerText = `${temp}°`;
-    document.getElementById("obs-feels").innerText = `Feels like ${heat}°`;
-    document.getElementById("obs-wind").innerText = `${wind} mph`;
-    document.getElementById("obs-humidity").innerText = `${hum}%`;
-    document.getElementById("obs-dewpoint").innerText = `${dew}°F`;
-    document.getElementById("obs-heat").innerText = `${heat}°F`;
-    document.getElementById("obs-rain-val").innerText = `${rain} in`;
-    document.getElementById("obs-phrase").innerText = p.textDescription || "Clear Skies";
-    document.getElementById("current-weather-icon").src = fetchAnimatedCDNPath(p.textDescription);
-}
-
-async function executeTimelineFetch(dailyUrl, hourlyUrl) {
-    try {
-        const hRes = await fetch(hourlyUrl, { headers: secureHeaders });
-        const hData = await hRes.json();
-        const hourBox = document.getElementById("hourly-scroller");
-        hourBox.innerHTML = "";
-
-        const currentPeriod = hData.properties.periods[0];
-        if(currentPeriod && currentPeriod.probabilityOfPrecipitation) {
-            document.getElementById("obs-rain-chance").innerText = `${currentPeriod.probabilityOfPrecipitation.value || 0}%`;
-        }
-
-        hData.properties.periods.slice(0, 24).forEach(slot => {
-            const timeLabel = new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit' });
-            hourBox.innerHTML += `
-                <div class="h-node">
-                    <div class="h-time">${timeLabel}</div>
-                    <img class="h-svg" src="${fetchAnimatedCDNPath(slot.shortForecast)}" alt="Status">
-                    <div class="h-temp">${slot.temperature}°</div>
-                </div>`;
-        });
-
-        const dRes = await fetch(dailyUrl, { headers: secureHeaders });
-        const dData = await dRes.json();
-        const dailyBox = document.getElementById("daily-stack");
-        dailyBox.innerHTML = "";
-        
-        if(dData.properties.periods[0]) {
-            document.getElementById("outlook-text-summary").innerText = dData.properties.periods[0].detailedForecast;
-            document.getElementById("obs-hilo").innerText = `H: ${dData.properties.periods[0].temperature}°  L: ${dData.properties.periods[1] ? dData.properties.periods[1].temperature : '--'}°`;
-        }
-
-        dData.properties.periods.forEach(slot => {
-            dailyBox.innerHTML += `
-                <div class="v-row">
-                    <div class="v-day">${slot.name}</div>
-                    <div class="v-icon-frame">
-                        <img class="v-svg" src="${fetchAnimatedCDNPath(slot.shortForecast)}" alt="Status">
-                    </div>
-                    <div class="v-temp">${slot.temperature}°</div>
-                    <div class="v-desc">${slot.shortForecast}</div>
-                </div>`;
-        });
-    } catch(err) { console.warn("Timeline fetch bypassed."); }
-}
-
-function renderFallbackMetrics(c) {
-    const temp = Math.round(c.temperature_2m);
-    const feels = Math.round(c.apparent_temperature);
-    const phrase = translateWMOCode(c.weather_code);
-
-    document.getElementById("obs-temp").innerText = `${temp}°`;
-    document.getElementById("obs-feels").innerText = `Feels like ${feels}°`;
+    document.getElementById("obs-temp").innerText = `${tempVal}°`;
+    document.getElementById("obs-feels").innerText = `Feels like ${feelsVal}°`;
     document.getElementById("obs-wind").innerText = `${Math.round(c.wind_speed_10m)} mph`;
     document.getElementById("obs-humidity").innerText = `${Math.round(c.relative_humidity_2m)}%`;
-    document.getElementById("obs-dewpoint").innerText = `--`;
-    document.getElementById("obs-heat").innerText = `${feels}°F`;
+    document.getElementById("obs-dewpoint").innerText = `${dewVal}°F`;
+    document.getElementById("obs-heat").innerText = `${feelsVal}°F`;
     document.getElementById("obs-rain-val").innerText = `${c.precipitation.toFixed(2)} in`;
-    document.getElementById("obs-phrase").innerText = phrase;
-    document.getElementById("current-weather-icon").src = fetchAnimatedCDNPath(phrase);
+    document.getElementById("obs-phrase").innerText = description;
+    
+    // Map directly to corrected, live animated SVGs
+    document.getElementById("current-weather-icon").src = mapTextToWeatherCompanyIcon(description);
 }
 
-function renderFallbackTimelines(h, d) {
-    const hourBox = document.getElementById("hourly-scroller");
-    hourBox.innerHTML = "";
+function processTimelineArrays(hourly, daily) {
+    const scroller = document.getElementById("hourly-scroller");
+    scroller.innerHTML = "";
     
-    document.getElementById("obs-rain-chance").innerText = `${h.probability_of_precipitation[0] || 0}%`;
+    document.getElementById("obs-rain-chance").innerText = `${hourly.probability_of_precipitation[0] || 0}%`;
 
-    for(let i=0; i<24; i++) {
-        const timeLabel = new Date(h.time[i] * 1000).toLocaleTimeString([], { hour: '2-digit' });
-        const phrase = translateWMOCode(h.weather_code[i]);
-        hourBox.innerHTML += `
+    // Process 24-Hour Timeline Elements
+    for (let i = 0; i < 24; i++) {
+        const timeLabel = new Date(hourly.time[i] * 1000).toLocaleTimeString([], { hour: '2-digit' });
+        const conditionText = translateWMOCodeToText(hourly.weather_code[i]);
+        scroller.innerHTML += `
             <div class="h-node">
                 <div class="h-time">${timeLabel}</div>
-                <img class="h-svg" src="${fetchAnimatedCDNPath(phrase)}" alt="Status">
-                <div class="h-temp">${Math.round(h.temperature_2m[i])}°</div>
+                <img class="h-svg" src="${mapTextToWeatherCompanyIcon(conditionText)}" alt="Icon">
+                <div class="h-temp">${Math.round(hourly.temperature_2m[i])}°</div>
             </div>`;
     }
 
-    const dailyBox = document.getElementById("daily-stack");
-    dailyBox.innerHTML = "";
-    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    // Process 7-Day Matrix Array Rows
+    const stack = document.getElementById("daily-stack");
+    stack.innerHTML = "";
+    const weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     
-    document.getElementById("obs-hilo").innerText = `H: ${Math.round(d.temperature_2m_max[0])}° L: ${Math.round(d.temperature_2m_min[0])}°`;
-    document.getElementById("outlook-text-summary").innerText = `Expect ${translateWMOCode(d.weather_code[0]).toLowerCase()} conditions today. Surface temperatures tracking towards peak day boundaries near ${Math.round(d.temperature_2m_max[0])}°F.`;
+    document.getElementById("obs-hilo").innerText = `H: ${Math.round(daily.temperature_2m_max[0])}° L: ${Math.round(daily.temperature_2m_min[0])}°`;
+    document.getElementById("outlook-text-summary").innerText = `Regional meteorological arrays indicate upcoming ${translateWMOCodeToText(daily.weather_code[0]).toLowerCase()} patterns. High coordinates peaking near ${Math.round(daily.temperature_2m_max[0])}°F with structural overnight lows cooling near ${Math.round(daily.temperature_2m_min[0])}°F.`;
 
-    for(let j=0; j<7; j++) {
-        const dayLabel = days[new Date(d.time[j] * 1000).getDay()];
-        const phrase = translateWMOCode(d.weather_code[j]);
-        dailyBox.innerHTML += `
+    for (let j = 0; j < 7; j++) {
+        const dayString = weekdayNames[new Date(daily.time[j] * 1000).getDay()];
+        const condText = translateWMOCodeToText(daily.weather_code[j]);
+        stack.innerHTML += `
             <div class="v-row">
-                <div class="v-day">${j === 0 ? 'Today' : dayLabel}</div>
+                <div class="v-day">${j === 0 ? 'Today' : dayString}</div>
                 <div class="v-icon-frame">
-                    <img class="v-svg" src="${fetchAnimatedCDNPath(phrase)}" alt="Status">
+                    <img class="v-svg" src="${mapTextToWeatherCompanyIcon(condText)}" alt="Icon">
                 </div>
-                <div class="v-temp">${Math.round(d.temperature_2m_max[j])}°</div>
-                <div class="v-desc">${phrase}</div>
+                <div class="v-temp">${Math.round(daily.temperature_2m_max[j])}° / ${Math.round(daily.temperature_2m_min[j])}°</div>
+                <div class="v-desc">${condText}</div>
             </div>`;
     }
 }
 
-// Content-Aware Text Translation Engine to Pull Live SVGs
-function fetchAnimatedCDNPath(desc) {
-    const rootPath = "https://basmielen.github.io/weather-icons/production/fill/all/";
-    // Secure Fallback Target Base
-    const base = "https://basmimus.github.io/weather-icons/production/fill/all/";
-    const cdn = "https://basmili3s.github.io/weather-icons/production/fill/all/";
-    const targetUrl = "https://basmilis.github.io/weather-icons/production/fill/all/";
-    
-    if (!desc) return `${targetUrl}cloudy.svg`;
-    const text = desc.toLowerCase();
-
-    if (text.includes("tornado")) return `${targetUrl}tornado.svg`;
-    if (text.includes("thunderstorm") || text.includes("tsra") || text.includes("severe")) return `${targetUrl}thunderstorms-extreme.svg`;
-    if (text.includes("heavy snow")) return `${targetUrl}extreme-snow.svg`;
-    if (text.includes("snow showers") || text.includes("flurries") || text.includes("snow")) return `${targetUrl}snow.svg`;
-    if (text.includes("heavy rain") || text.includes("squall")) return `${targetUrl}extreme-rain.svg`;
-    if (text.includes("rain") || text.includes("drizzle") || text.includes("showers")) return `${targetUrl}rain.svg`;
-    if (text.includes("mostly cloudy") || text.includes("broken") || text.includes("overcast")) return `${targetUrl}cloudy.svg`;
-    if (text.includes("partly cloudy") || text.includes("scattered")) return `${targetUrl}partly-cloudy-day.svg`;
-    if (text.includes("clear") || text.includes("fair") || text.includes("sunny")) return `${targetUrl}clear-day.svg`;
-    if (text.includes("fog") || text.includes("mist")) return `${targetUrl}fog.svg`;
-
-    return `${targetUrl}cloudy.svg`;
-}
-
-function translateWMOCode(code) {
+/* WMO Code to Standard Meteorological Phrases */
+function translateWMOCodeToText(code) {
     if (code === 0) return "Clear";
     if (code <= 3) return "Partly Cloudy";
     if (code <= 48) return "Fog";
-    if (code <= 55) return "Drizzle";
+    if (code <= 55) return "Light Drizzle";
     if (code <= 65) return "Rain";
     if (code <= 77) return "Snow";
     if (code <= 82) return "Showers";
     if (code <= 86) return "Snow Showers";
-    return "Thunderstorms";
+    if (code <= 99) return "Thunderstorms";
+    return "Cloudy";
 }
 
-async function syncActiveWarnings(lat, lon) {
-    const box = document.getElementById("alert-feed-box");
-    try {
-        const res = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, { headers: secureHeaders });
-        const data = await res.json();
-        const list = data.features || [];
+/* Strict Translation Matrix into Verified Open-Source Animated TWC Icons */
+function mapTextToWeatherCompanyIcon(phrase) {
+    const baseSecureCDN = "https://basmilis.github.io/weather-icons/production/fill/all/";
+    const normalized = phrase.toLowerCase();
 
-        if (list.length === 0) {
-            box.innerHTML = `<p class="status-msg">No active severe weather warnings for this micro-grid sector.</p>`;
-            return;
-        }
+    if (normalized.includes("tornado")) return `${baseSecureCDN}tornado.svg`;
+    if (normalized.includes("thunderstorm") || normalized.includes("severe")) return `${baseSecureCDN}thunderstorms-extreme.svg`;
+    if (normalized.includes("heavy snow")) return `${baseSecureCDN}extreme-snow.svg`;
+    if (normalized.includes("snow showers") || normalized.includes("flurries")) return `${baseSecureCDN}snow.svg`;
+    if (normalized.includes("snow")) return `${baseSecureCDN}snow.svg`;
+    if (normalized.includes("heavy rain") || normalized.includes("squall")) return `${baseSecureCDN}extreme-rain.svg`;
+    if (normalized.includes("rain") || normalized.includes("drizzle") || normalized.includes("showers")) return `${baseSecureCDN}rain.svg`;
+    if (normalized.includes("mostly cloudy") || normalized.includes("broken") || normalized.includes("overcast") || normalized.includes("cloudy")) return `${baseSecureCDN}cloudy.svg`;
+    if (normalized.includes("partly cloudy") || normalized.includes("scattered")) return `${baseSecureCDN}partly-cloudy-day.svg`;
+    if (normalized.includes("clear") || normalized.includes("fair") || normalized.includes("sunny")) return `${baseSecureCDN}clear-day.svg`;
+    if (normalized.includes("fog") || normalized.includes("mist")) return `${baseSecureCDN}fog.svg`;
 
-        box.innerHTML = "";
-        list.forEach(item => {
-            const p = item.properties;
-            const nm = p.event.toLowerCase();
-            const priority = nm.includes("watch") || nm.includes("warning") || nm.includes("emergency");
-            box.innerHTML += `
-                <div class="bulletin-card ${priority ? 'priority' : ''}">
-                    <h4>${p.event}</h4>
-                    <p>${p.headline || "Parsing real-time hazard broadcast strings..."}</p>
-                </div>`;
-        });
-    } catch(err) {
-        box.innerHTML = `<p class="status-msg text-danger">Hazard loop handshake timed out.</p>`;
-    }
+    return `${baseSecureCDN}cloudy.svg`;
 }
+
+/* Complete Storm Prediction Center Day 1-8 Convective Outlook Compiling Core */
+async function compileSPCOutlooks(lat, lon) {
+    const container = document.getElementById("spc-outlook-container");
+    container.innerHTML = "";
+
+    // Sequential loop mapping Day 1 through Day 8 convective sectors
+    for (let day = 1; day <= 8; day++) {
+        try {
+            // Fetch live categorical geojson strings directly via official NOAA endpoints
+            const response = await fetch(`https://www.spc.noaa.gov/products/outlook/day${day}otlk_cat.geojson`);
+            if (!response.ok) throw new Error("Outlook vector layer unreachable.");
+            
+            const geojson = await response.json();
+            let identifiedRisk = "No Risk Layer Decoded";
+            let cssClass = "risk-general";
+
+            if (geojson.features && geojson.features.length > 0) {
+                // Loop backward from highest severe value threshold down to marginal
+                const sortedFeatures = geojson.features.sort((a, b) => (b.properties.Label || "").localeCompare(a.properties.Label || ""));
+                if (sortedFeatures[0] && sortedFeatures[0].properties) {
+                    identifiedRisk = sortedFeatures[0].properties.LABEL || "No Categorical Severe Risk Checked";
+                }
+            }
+
+            const checkText = identifiedRisk.toLowerCase();
+            if (checkText.includes("high")) cssClass = "risk-high";
+            else if (checkText.includes("mod")) cssClass = "risk-moderate";
+            else if (checkText.includes("enh")) cssClass = "risk-enhanced";
+            else if (checkText.includes("slgt")) cssClass = "risk-slight";
+            else if (checkText.includes("mrgl")) cssClass = "risk-marginal";
+            else if (checkText.includes("gen") || checkText.includes("tstm")) { identifiedRisk = "Thunderstorms"; cssClass = "risk-general"; }
+
+            container.innerHTML += `
+                <div class="spc-node">
+                    <div class="spc-header-line">
+                        <span class="spc
