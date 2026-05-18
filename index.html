@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>METEO-ONYX // Severe Weather Center</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="nav-container">
+        <nav class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('tab-dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('tab-hourly')">72-Hour</button>
+            <button class="tab-btn" onclick="switchTab('tab-daily')">7-Day</button>
+            <button class="tab-btn" onclick="switchTab('tab-radar')">Live Radar</button>
+            <button class="tab-btn" onclick="switchTab('tab-spc')">SPC / WPC Briefing</button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <section id="tab-dashboard" class="tab-content active-content">
+            <div class="dashboard-grid">
+                <div class="panel main-panel">
+                    <div class="panel-header">Current Conditions</div>
+                    <div class="core-weather">
+                        <div class="icon-frame">
+                            <img id="current-twc-icon" src="icons/na.png" alt="Condition Icon" class="twc-icon">
+                        </div>
+                        <div class="temp-block">
+                            <h1 id="obs-temp">--°F</h1>
+                            <p id="obs-phrase">Synchronizing data feeds...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel metrics-panel">
+                    <div class="panel-header">Atmospheric Metrics</div>
+                    <table class="data-table">
+                        <tr><td>Dewpoint</td><td id="obs-dewpoint" class="value">--°F</td></tr>
+                        <tr><td>Heat Index</td><td id="obs-heatindex" class="value">--°F</td></tr>
+                        <tr><td>UV Index</td><td id="obs-uv" class="value">--</td></tr>
+                        <tr><td>Rainfall (24h)</td><td id="obs-rain" class="value">0.00 in</td></tr>
+                        <tr><td>Snow Accumulation</td><td id="obs-snow" class="value">0.0 in</td></tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-hourly" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">72-Hour Chronological Forecast</div>
+                <div id="hourly-container" class="scroll-container-x"></div>
+            </div>
+        </section>
+
+        <section id="tab-daily" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">Extended Outlook</div>
+                <div id="daily-container" class="grid-container-y"></div>
+            </div>
+        </section>
+
+        <section id="tab-radar" class="tab-content">
+            <div class="panel radar-panel">
+                <div class="panel-header">Interactive Base Reflectivity Loop</div>
+                <div class="iframe-wrapper">
+                    <iframe id="radar-frame" src="https://radar.weather.gov/withandwithout.php?title=Radar%20Base%20Reflectivity" loading="lazy"></iframe>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-spc" class="tab-content">
+            <div class="spc-dashboard">
+                <div class="spc-column">
+                    <div class="panel active-alerts-panel">
+                        <div class="panel-header text-alert">Active Convective Watches & MCD/MPD Feed</div>
+                        <div id="live-bulletins" class="bulletin-list">
+                            <p class="loading-text">Parsing live NOAA telecommunication wires...</p>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">Current National Severe Activity Map</div>
+                        <img src="https://www.spc.noaa.gov/products/activity_loop.gif" alt="SPC Activity" class="spc-graphic">
+                    </div>
+                </div>
+
+                <div class="spc-column">
+                    <div class="panel">
+                        <div class="panel-header">Convective Outlook Map Feed</div>
+                        <div class="select-wrapper">
+                            <select id="outlook-select" onchange="updateOutlookImage()">
+                                <optgroup label="Day 1 Convective Hazards">
+                                    <option value="day1otlk">Day 1 Categorical Outlook</option>
+                                    <option value="day1torn">Day 1 Tornado Probability</option>
+                                    <option value="day1wind">Day 1 Wind Probability</option>
+                                    <option value="day1hail">Day 1 Hail Probability</option>
+                                </optgroup>
+                                <optgroup label="Day 2 Convective Hazards">
+                                    <option value="day2otlk">Day 2 Categorical Outlook</option>
+                                    <option value="day2torn">Day 2 Tornado Probability</option>
+                                    <option value="day2wind">Day 2 Wind Probability</option>
+                                    <option value="day2hail">Day 2 Hail Probability</option>
+                                </optgroup>
+                                <optgroup label="Medium Range Outlooks">
+                                    <option value="day3otlk">Day 3 Categorical Outlook</option>
+                                    <option value="day3prob">Day 3 Probabilistic Outlook</option>
+                                    <option value="day48prob">Day 4-8 Probabilistic Outlook</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="graphic-frame">
+                            <img id="spc-outlook-img" src="https://www.spc.noaa.gov/products/outlook/day1otlk.gif" alt="Outlook Product" class="spc-graphic">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
