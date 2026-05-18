@@ -4,7 +4,8 @@
     --card-border: rgba(255, 255, 255, 0.05);
     --text-pure: #ffffff;
     --text-gray: #929298;
-    --app-blue: #2563eb;
+    --app-blue: #1d4ed8;
+    --alert-gold: #eab308;
     --alert-crimson: #ef4444;
 }
 
@@ -12,38 +13,36 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--bg-onyx-deep);
-    background-image: linear-gradient(180deg, rgba(8,8,10,0.2) 0%, var(--bg-onyx-deep) 70%),
-                      url('https://images.unsplash.com/photo-1516912481808-3406841bd33c?q=80&w=1000&auto=format&fit=crop');
+    background-image: linear-gradient(180deg, rgba(8,8,10,0.4) 0%, var(--bg-onyx-deep) 85%),
+                      url('https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?q=80&w=1000&auto=format&fit=crop');
     background-size: cover;
     background-position: center top;
     background-attachment: fixed;
     color: var(--text-pure);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     overflow-x: hidden;
 }
 
-/* App Header Styles */
+/* Header Container Adjustments */
 .app-top-header {
-    background: rgba(12, 12, 15, 0.5);
+    background: rgba(10, 10, 13, 0.7);
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
     position: sticky;
     top: 0;
     z-index: 999;
-    padding-top: env(safe-area-inset-top, 8px);
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding-top: env(safe-area-inset-top, 6px);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .search-pill-wrapper {
     max-width: 450px;
-    margin: 6px auto;
+    margin: 8px auto;
     display: flex;
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
+    border-radius: 20px;
     padding: 4px 6px 4px 14px;
-    align-items: center;
     width: 90%;
 }
 
@@ -52,68 +51,70 @@ body {
     border: none;
     outline: none;
     color: var(--text-pure);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
     flex: 1;
 }
 
 .search-btn {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.12);
     border: none;
-    font-size: 0.9rem;
+    font-size: 0.78rem;
+    color: var(--text-pure);
+    font-weight: 700;
+    text-transform: uppercase;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 6px 14px;
+    border-radius: 14px;
 }
 
-/* Horizontal Section Pills Bar */
+/* Horizontal Track Setup */
 .app-section-nav {
     max-width: 450px;
     margin: 0 auto;
-    padding: 8px 0;
+    padding: 6px 0 10px 0;
     width: 94%;
 }
 
 .pill-track {
     display: flex;
     overflow-x: auto;
-    gap: 8px;
+    gap: 6px;
     scrollbar-width: none;
 }
 .pill-track::-webkit-scrollbar { display: none; }
 
 .section-pill {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255,255,255,0.02);
-    color: var(--text-pure);
-    padding: 8px 18px;
-    font-size: 0.85rem;
+    background: transparent;
+    border: none;
+    color: var(--text-gray);
+    padding: 6px 14px;
+    font-size: 0.82rem;
     font-weight: 600;
-    border-radius: 20px;
+    border-radius: 14px;
     white-space: nowrap;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .section-pill.active {
-    background: var(--text-pure);
-    color: #000000;
-    font-weight: 700;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text-pure);
 }
 
-/* Viewport Scroller Base */
+/* Viewport Scale Control Layer */
 .app-container {
     max-width: 440px;
     margin: 0 auto;
-    padding: 12px 14px 100px 14px;
+    padding: 10px 12px 100px 12px;
     box-sizing: border-box;
 }
 
 .view-section { display: none; }
 .view-section.active-view { display: block; }
 
-/* Main Mobile App Hero Design Block */
+/* Dynamic Hero Block Geometry */
 .hero-weather-block {
-    padding: 20px 6px 30px 6px;
+    padding: 16px 4px 24px 4px;
 }
 
 .hero-row {
@@ -123,11 +124,11 @@ body {
 }
 
 .giant-temp-text {
-    font-size: 6.5rem;
+    font-size: 6rem;
     font-weight: 100;
     margin: 0;
     line-height: 0.85;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.04em;
 }
 
 .hero-icon-container {
@@ -138,154 +139,155 @@ body {
 }
 
 .animated-main-icon {
-    width: 82px;
-    height: 82px;
-    margin-right: -6px;
+    width: 86px;
+    height: 86px;
 }
 
 .condition-subtitle {
-    margin: 6px 0 0 0;
-    font-size: 1.1rem;
+    margin: 4px 0 0 0;
+    font-size: 1.05rem;
     font-weight: 600;
-    letter-spacing: -0.01em;
 }
 
 .hero-submetrics {
-    margin-top: 14px;
-    font-size: 0.95rem;
+    margin-top: 12px;
+    font-size: 0.92rem;
     font-weight: 500;
-    color: var(--text-pure);
 }
-.hero-submetrics .pipe { color: rgba(255,255,255,0.2); margin: 0 6px; }
+.hero-submetrics .pipe { color: rgba(255,255,255,0.15); margin: 0 6px; }
 
 .rain-chance-line {
     margin-top: 6px;
-    font-size: 0.9rem;
-    color: var(--text-pure);
+    font-size: 0.85rem;
+    color: var(--text-gray);
 }
 
-/* Standard Mobile App Rounded Cards */
+/* App Structural Cards */
 .app-card {
     background: var(--card-glass);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
 }
-.app-card.card-dark {
-    background: rgba(14, 14, 17, 0.85);
-}
+.app-card.card-dark { background: rgba(12, 12, 15, 0.9); }
 .app-card.no-pad { padding: 0; overflow: hidden; }
 
 .app-card h3 {
-    font-size: 0.95rem;
-    text-transform: none;
-    color: var(--text-pure);
-    margin: 0 0 14px 0;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    color: var(--text-gray);
+    letter-spacing: 0.03em;
+    margin: 0 0 12px 0;
     font-weight: 700;
 }
-
-.card-arrow-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-.card-arrow-header h3 { margin: 0; }
-.chevron-right { color: var(--text-gray); font-size: 1.2rem; }
 
 .outlook-paragraph {
     margin: 0;
     font-size: 0.88rem;
     line-height: 1.45;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.8);
 }
 
-/* Metric Display Rows */
+/* Linear Layout Elements */
 .metrics-list { display: flex; flex-direction: column; }
 .m-row {
     display: flex;
     justify-content: space-between;
-    padding: 12px 0;
+    padding: 10px 0;
     border-bottom: 1px solid rgba(255,255,255,0.03);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
 }
 .m-row:last-child { border-bottom: none; }
-.m-row span { color: rgba(255,255,255,0.65); }
+.m-row span { color: var(--text-gray); }
 .m-row strong { color: var(--text-pure); font-weight: 600; }
 
-/* Horizontal Continuous Scroller */
+/* Continuous Horizontal Scroller Core */
 .horizontal-scroller-box {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
     scrollbar-width: none;
 }
 .horizontal-scroller-box::-webkit-scrollbar { display: none; }
 
 .h-node {
-    flex: 0 0 72px;
+    flex: 0 0 70px;
     background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.03);
-    border-radius: 12px;
-    padding: 10px 4px;
+    border: 1px solid rgba(255,255,255,0.02);
+    border-radius: 10px;
+    padding: 8px 4px;
     text-align: center;
 }
-.h-node .h-time { font-size: 0.75rem; color: var(--text-gray); font-weight: 600; }
-.h-node .h-svg { width: 34px; height: 34px; margin: 6px auto; display: block; }
-.h-node .h-temp { font-size: 1.05rem; font-weight: 600; }
+.h-node .h-time { font-size: 0.72rem; color: var(--text-gray); font-weight: 600; }
+.h-node .h-svg { width: 32px; height: 32px; margin: 4px auto; display: block; }
+.h-node .h-temp { font-size: 1rem; font-weight: 600; }
 
-/* Vertical Stack Box List */
-.vertical-stack-box { display: flex; flex-direction: column; gap: 6px; }
+/* Extended Vertical Stack Layout */
+.vertical-stack-box { display: flex; flex-direction: column; gap: 4px; }
 .v-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: rgba(255,255,255,0.01);
     border: 1px solid rgba(255,255,255,0.02);
-    padding: 10px 14px;
-    border-radius: 12px;
-}
-.v-day { width: 30%; font-size: 0.88rem; font-weight: 600; }
-.v-icon-frame { width: 20%; display: flex; align-items: center; }
-.v-svg { width: 32px; height: 32px; }
-.v-temp { width: 20%; font-size: 0.95rem; font-weight: 600; text-align: right; }
-.v-desc { width: 30%; font-size: 0.78rem; color: var(--text-gray); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* Fixed Radar Aspect Container */
-.frame-card { height: 400px; }
-#radar-frame { width: 100%; height: 100%; border: none; }
-
-/* Storm Bulletin Lists */
-.feed-scroller { max-height: 300px; overflow-y: auto; }
-.bulletin-card {
-    background: rgba(0,0,0,0.2);
-    border-left: 3px solid #eab308;
     padding: 10px 12px;
-    border-radius: 0 8px 8px 0;
-    margin-bottom: 8px;
+    border-radius: 10px;
 }
-.bulletin-card.priority { border-left-color: var(--alert-crimson); }
-.bulletin-card h4 { margin: 0 0 4px 0; font-size: 0.85rem; }
-.bulletin-card p { margin: 0; font-size: 0.78rem; color: var(--text-gray); }
-.spc-fluid-img { width: 100%; height: auto; border-radius: 8px; margin-top: 8px; }
+.v-day { width: 30%; font-size: 0.85rem; font-weight: 600; }
+.v-icon-frame { width: 20%; display: flex; align-items: center; }
+.v-svg { width: 28px; height: 28px; }
+.v-temp { width: 25%; font-size: 0.9rem; font-weight: 600; text-align: right; }
+.v-desc { width: 25%; font-size: 0.78rem; color: var(--text-gray); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Bottom Menu Target Bar Layout */
+/* Radar Map Display Fix */
+.frame-card { height: 440px; }
+#radar-frame { width: 100%; height: 100%; border: none; background: #000000; }
+
+/* SPC Outlook Interactive Matrix Layout */
+.spc-matrix-stack { display: flex; flex-direction: column; gap: 8px; }
+.spc-node {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 12px;
+}
+.spc-header-line {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+}
+.spc-day-lbl { font-size: 0.82rem; font-weight: 700; color: #fff; text-transform: uppercase; }
+.spc-risk-badge { font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; color: #000; background: var(--text-gray); }
+.spc-summary-line { font-size: 0.8rem; color: var(--text-gray); line-height: 1.3; }
+.spc-loading-msg { font-size: 0.82rem; color: var(--text-gray); text-align: center; padding: 20px 0; }
+
+/* Risk Category Scale Map Colors */
+.risk-general { background: #c0e7b4 !important; color: #000 !important; }
+.risk-marginal { background: #7fc37a !important; color: #000 !important; }
+.risk-slight { background: #f6e58d !important; color: #000 !important; }
+.risk-enhanced { background: #ffbe76 !important; color: #000 !important; }
+.risk-moderate { background: #ff7675 !important; color: #fff !important; }
+.risk-high { background: #d63031 !important; color: #fff !important; }
+
+/* Universal Bottom Nav Component Layout */
 .app-bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(10, 10, 13, 0.82);
+    background: rgba(10, 10, 13, 0.85);
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--card-border);
     display: flex;
     justify-content: space-around;
-    padding: 6px 0 calc(env(safe-area-inset-bottom, 10px) + 2px) 0;
+    padding: 10px 0 calc(env(safe-area-inset-bottom, 10px) + 4px) 0;
     z-index: 9999;
 }
 
@@ -297,12 +299,9 @@ body {
     align-items: center;
     color: var(--text-gray);
     cursor: pointer;
-    gap: 2px;
     width: 20%;
 }
 
-.nav-icon { font-size: 1.2rem; }
-.nav-label { font-size: 0.68rem; font-weight: 500; }
-
+.nav-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; }
 .nav-item.active { color: var(--text-pure); }
 .text-alert { color: var(--alert-crimson); }
