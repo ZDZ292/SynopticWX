@@ -3,98 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SLATEWEATHER PRO</title>
+    <title>SLATEWEATHER PRO // Elite Grid</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header class="twc-app-header">
         <div class="header-top-row">
-            <div class="twc-logo-badge">TWC</div>
+            <div class="twc-logo-badge">SLATE PRO</div>
             <div class="search-pill-container">
-                <input type="text" id="location-input" placeholder="New York City">
-                <button onclick="handleSearch()" class="search-trigger">🔍</button>
+                <input type="text" id="location-input" placeholder="Enter City, State...">
+                <button onclick="handleSearch()" class="search-trigger">⚡</button>
             </div>
             <div class="app-action-icons">
+                <span class="pulse-dot"></span>
                 <span class="icon-bell">🔔</span>
-                <span class="icon-profile">👤</span>
             </div>
         </div>
         
         <nav class="twc-pill-nav">
             <div class="nav-track">
-                <button class="nav-pill active" onclick="switchTab('tab-dashboard')">Today</button>
-                <button class="nav-pill" onclick="switchTab('tab-hourly')">Hourly</button>
-                <button class="nav-pill" onclick="switchTab('tab-daily')">Daily</button>
-                <button class="nav-pill" onclick="switchTab('tab-radar')">Radar</button>
-                <button class="nav-pill" onclick="switchTab('tab-spc')">Storms</button>
+                <button class="nav-pill active" onclick="switchTab('tab-dashboard')">Live Feed</button>
+                <button class="nav-pill" onclick="switchTab('tab-hourly')">Hourly Track</button>
+                <button class="nav-pill" onclick="switchTab('tab-daily')">7-Day Matrix</button>
+                <button class="nav-pill" onclick="switchTab('tab-radar')">Interactive Radar</button>
+                <button class="nav-pill" onclick="switchTab('tab-spc')">Convective Intel</button>
             </div>
         </nav>
     </header>
 
     <main class="app-viewport">
-        
         <section id="tab-dashboard" class="tab-content active-content">
-            <div class="twc-card hero-display">
+            <div class="twc-neon-card hero-display">
                 <div class="hero-top-info">
                     <div class="temperature-delivery">
                         <span id="obs-temp" class="giant-degrees">--°</span>
-                        <p id="obs-phrase" class="condition-string">Syncing networks...</p>
+                        <p id="obs-phrase" class="condition-string">Connecting to satellite grid...</p>
                     </div>
                     <div class="animated-icon-delivery">
-                        <img id="current-twc-icon" src="https://basmilius.github.io/weather-icons/production/fill/all/not-available.svg" alt="Animated State" class="main-animated-svg">
+                        <img id="current-twc-icon" src="https://basmilius.github.io/weather-icons/production/fill/all/not-available.svg" alt="State Engine" class="main-animated-svg">
                     </div>
                 </div>
                 
                 <div class="hero-subline-metrics">
-                    <span id="obs-feels">Feels like --°</span>
-                    <span class="divider">|</span>
-                    <span id="obs-hi-lo">H: --° L: --°</span>
+                    <span id="obs-feels" class="neon-text-blue">Feels like --°</span>
+                    <span class="divider">//</span>
+                    <span id="obs-hi-lo">System Steady</span>
                 </div>
             </div>
 
-            <div class="twc-card modular-details-box">
-                <h3 class="box-title">Today's Outlook Matrix</h3>
+            <div class="twc-neon-card modular-details-box">
+                <h3 class="box-title">Primary Atmospheric Matrix</h3>
                 <div class="compact-grid-rows">
-                    <div class="metric-row"><span>Wind Velocity</span><strong id="obs-wind">-- mph</strong></div>
-                    <div class="metric-row"><span>Humidity Index</span><strong id="obs-humidity">--%</strong></div>
-                    <div class="metric-row"><span>Dew Point</span><strong id="obs-dewpoint">--°F</strong></div>
-                    <div class="metric-row"><span>Hourly Rainfall</span><strong id="obs-rain">0.00 in</strong></div>
+                    <div class="metric-row"><span>Wind Velocity</span><strong id="obs-wind" class="neon-text-gold">-- mph</strong></div>
+                    <div class="metric-row"><span>Relative Humidity</span><strong id="obs-humidity">--%</strong></div>
+                    <div class="metric-row"><span>Dew Point Node</span><strong id="obs-dewpoint">--°F</strong></div>
+                    <div class="metric-row"><span>Precipitation (1H)</span><strong id="obs-rain">0.00 in</strong></div>
                 </div>
             </div>
         </section>
 
         <section id="tab-hourly" class="tab-content">
-            <div class="twc-card">
-                <h3 class="box-title">72-Hour Continuous Timeline</h3>
+            <div class="twc-neon-card">
+                <h3 class="box-title">72-Hour Chronological Vector</h3>
                 <div id="hourly-container" class="app-horizontal-scroller"></div>
             </div>
         </section>
 
         <section id="tab-daily" class="tab-content">
-            <div class="twc-card">
-                <h3 class="box-title">Extended Multi-Day Forecast</h3>
+            <div class="twc-neon-card">
+                <h3 class="box-title">7-Day Core Extended Projection</h3>
                 <div id="daily-container" class="app-vertical-stack"></div>
             </div>
         </section>
 
         <section id="tab-radar" class="tab-content">
-            <div class="twc-card zero-padding">
+            <div class="twc-neon-card zero-padding glow-radar">
                 <div class="radar-box-wrapper">
-                    <iframe id="radar-frame" src="" loading="lazy"></iframe>
+                    <iframe id="radar-frame" src="" allowfullscreen loading="lazy"></iframe>
                 </div>
             </div>
         </section>
 
         <section id="tab-spc" class="tab-content">
-            <div class="twc-card">
-                <h3 class="box-title text-danger">Active Regional Hazards Feed</h3>
+            <div class="twc-neon-card">
+                <h3 class="box-title text-danger">NOAA Convective Warnings & Hazards</h3>
                 <div id="live-bulletins" class="bulletin-board">
-                    <p class="status-msg">Listening to convective warning loops...</p>
+                    <p class="status-msg">Polling local emergency frequencies...</p>
                 </div>
             </div>
         </section>
-
     </main>
 
     <script src="app.js"></script>
