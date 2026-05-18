@@ -1,190 +1,198 @@
-:root {
-    --onyx-pure: #050505;
-    --onyx-card: #0d0d0d;
-    --onyx-panel: #121212;
-    --onyx-border: #1a1a1a;
-    --text-main: #f5f5f7;
-    --text-muted: #6e6e73;
-    --sun-gold: #eab308;
-    --alert-crimson: #dc2626;
+// Default sector coordinates set to New York City as your starting canvas
+let currentCoordinates = "40.7128,-74.0060"; 
+
+const networkHeaders = {
+    "User-Agent": "SlateWeatherPRO/3.0 (contact: github-deploy-engine)"
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Allows hitting "Enter" on mobile keyboard to trigger search
+    document.getElementById("location-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleSearch();
+    });
+    runWeatherCore();
+});
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-content'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active-content');
+    if (window.event) window.event.currentTarget.classList.add('active');
 }
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: var(--text-main);
-    background: linear-gradient(180deg, rgba(5, 5, 5, 0.85) 0%, var(--onyx-pure) 100%), 
-                url('https://images.unsplash.com/photo-1617155093730-a8bf47be792d?q=80&w=3840&auto=format&fit=crop') no-repeat center top;
-    background-size: cover;
-    background-attachment: fixed;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
+function updateOutlookImage() {
+    const selector = document.getElementById("outlook-select");
+    const targetImage = document.getElementById("spc-outlook-img");
+    targetImage.src = `https://www.spc.noaa.gov/products/outlook/${selector.value}.gif`;
 }
 
-.nav-container {
-    background: rgba(5, 5, 5, 0.6);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border-bottom: 1px solid var(--onyx-border);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding: 14px 0;
+async function handleSearch() {
+    const query = document.getElementById("location-input").value.trim();
+    if (!query) return;
+
+    document.getElementById("obs-phrase").innerText = "Geocoding location vector...";
+    
+    try {
+        // Fetch open-source geocoding mapping payload
+        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`);
+        const geoData = await geoRes.json();
+
+        if (!geoData.results || geoData.results.length === 0) {
+            document.getElementById("obs-phrase").innerText = "Location unknown to database.";
+            return;
+        }
+
+        const location = geoData.results[0];
+        currentCoordinates = `${location.latitude.toFixed(4)},${location.longitude.toFixed(4)}`;
+        
+        document.getElementById("station-header").innerText = `Current Conditions // ${location.name}, ${location.admin1 || ''}`;
+        
+        // Refresh structural loops
+        runWeatherCore();
+    } catch (err) {
+        console.error("Geocoding network crash: ", err);
+        document.getElementById("obs-phrase").innerText = "Geocoding connection dropped.";
+    }
 }
 
-.header-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
+async function runWeatherCore() {
+    try {
+        // Stage 1: Handshake with points matrix
+        const pointRes = await fetch(`https://api.weather.gov/points/${currentCoordinates}`, { headers: networkHeaders });
+        const pointData = await pointRes.json();
+        
+        // Sync map frames
+        document.getElementById("radar-frame").src = `https://radar.weather.gov/withandwithout.php?title=Radar%20Loop&lat=${currentCoordinates.split(',')[0]}&lon=${currentCoordinates.split(',')[1]}`;
+
+        fetchCurrentObservations(pointData.properties.observationStations);
+        fetchTimelines(pointData.properties.forecast, pointData.properties.forecastHourly);
+        runSPCOutlookEngine();
+    } catch (err) {
+        document.getElementById("obs-phrase").innerText = "NWS core server handshake rejected.";
+        console.error("Core engine exception: ", err);
+    }
 }
 
-.search-box {
-    display: flex;
-    gap: 8px;
-    width: 90%;
-    max-width: 500px;
+async function fetchCurrentObservations(stationsUrl) {
+    try {
+        const resStations = await fetch(stationsUrl, { headers: networkHeaders });
+        const dataStations = await resStations.json();
+        
+        if (!dataStations.features || dataStations.features.length === 0) {
+            throw new Error("No stations in grid block");
+        }
+
+        const latestObsRes = await fetch(`${dataStations.features[0].id}/observations/latest`, { headers: networkHeaders });
+        const obs = await latestObsRes.json();
+        const p = obs.properties;
+
+        // Metric Conversions
+        const tempF = p.temperature.value ? Math.round((p.temperature.value * 9/5) + 32) : "--";
+        const dewF = p.dewpoint.value ? Math.round((p.dewpoint.value * 9/5) + 32) : "--";
+        const heatF = p.heatIndex.value ? Math.round((p.heatIndex.value * 9/5) + 32) : tempF;
+        const windMph = p.windSpeed.value ? Math.round(p.windSpeed.value * 0.621371) : "0";
+        const rainIn = p.precipitationLastHour.value ? (p.precipitationLastHour.value / 25.4).toFixed(2) : "0.00";
+        const humidityPercent = p.relativeHumidity.value ? Math.round(p.relativeHumidity.value) : "--";
+
+        document.getElementById("obs-temp").innerText = tempF !== "--" ? `${tempF}°F` : "--°F";
+        document.getElementById("obs-dewpoint").innerText = dewF !== "--" ? `${dewF}°F` : "--°F";
+        document.getElementById("obs-heatindex").innerText = heatF !== "--" ? `${heatF}°F` : "--°F";
+        document.getElementById("obs-wind").innerText = `${windMph} mph`;
+        document.getElementById("obs-rain").innerText = `${rainIn} in`;
+        document.getElementById("obs-humidity").innerText = `${humidityPercent}%`;
+        document.getElementById("obs-phrase").innerText = p.textDescription || "Stable Atmospheric Systems";
+
+        parseTWCLocalIcon(p.icon || "", p.textDescription || "");
+    } catch(e) { 
+        console.error("Observation node loop fail:", e); 
+        document.getElementById("obs-phrase").innerText = "Station feeding gap. Retrying layout map...";
+        document.getElementById("current-twc-icon").src = `icons/na.png`;
+    }
 }
 
-.search-box input {
-    flex: 1;
-    background: #000;
-    border: 1px solid var(--onyx-border);
-    padding: 10px 16px;
-    border-radius: 20px;
-    color: var(--text-main);
-    font-size: 0.9rem;
-    outline: none;
+async function fetchTimelines(dailyUrl, hourlyUrl) {
+    try {
+        const hRes = await fetch(hourlyUrl, { headers: networkHeaders });
+        const hData = await hRes.json();
+        const container = document.getElementById("hourly-container");
+        container.innerHTML = "";
+
+        if (hData.properties && hData.properties.periods) {
+            hData.properties.periods.slice(0, 72).forEach(slot => {
+                const time = new Date(slot.startTime).toLocaleTimeString([], {hour: '2-digit'});
+                container.innerHTML += `
+                    <div style="flex:0 0 115px; background:#050505; padding:16px; border-radius:10px; border:1px solid #1a1a1a; text-align:center;">
+                        <div style="font-size:0.72rem; color:#555; text-transform:uppercase; font-weight:700;">${time}</div>
+                        <div style="font-weight:300; font-size:1.4rem; color:#eab308; margin:8px 0;">${slot.temperature}°</div>
+                        <div style="font-size:0.68rem; color:#8e8e93; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${slot.shortForecast}</div>
+                    </div>`;
+            });
+        }
+
+        const dRes = await fetch(dailyUrl, { headers: networkHeaders });
+        const dData = await dRes.json();
+        const dContainer = document.getElementById("daily-container");
+        dContainer.innerHTML = "";
+
+        if (dData.properties && dData.properties.periods) {
+            dData.properties.periods.forEach(slot => {
+                dContainer.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#050505; padding:16px 24px; border-radius:10px; border:1px solid #1a1a1a; margin-bottom:10px;">
+                        <div style="font-weight:700; width:30%; font-size:0.9rem;">${slot.name}</div>
+                        <div style="color:#eab308; font-weight:300; font-size:1.3rem; width:15%;">${slot.temperature}°F</div>
+                        <div style="font-size:0.82rem; color:#8e8e93; width:55%; text-align:right;">${slot.shortForecast}</div>
+                    </div>`;
+            });
+        }
+    } catch(e) { console.error("Timeline data loading fault:", e); }
 }
 
-.search-box button {
-    background: var(--onyx-panel);
-    border: 1px solid #262626;
-    color: var(--text-main);
-    padding: 0 18px;
-    border-radius: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+function parseTWCLocalIcon(nwsUrl, desc) {
+    let code = "na"; 
+    const text = desc.toLowerCase();
+    
+    if (text.includes("tornado")) code = "0";
+    else if (text.includes("thunderstorm") || text.includes("tsra")) code = "4";
+    else if (text.includes("heavy snow")) code = "16";
+    else if (text.includes("snow showers")) code = "14";
+    else if (text.includes("snow") || text.includes("flurries")) code = "16";
+    else if (text.includes("heavy rain") || text.includes("squall")) code = "12";
+    else if (text.includes("rain") || text.includes("drizzle") || text.includes("showers")) code = "11";
+    else if (text.includes("mostly cloudy") || text.includes("broken")) code = "28";
+    else if (text.includes("partly cloudy") || text.includes("scattered")) code = "30";
+    else if (text.includes("clear") || text.includes("fair") || text.includes("sunny")) code = "32";
+    else if (text.includes("fog")) code = "20";
+    
+    document.getElementById("current-twc-icon").src = `icons/${code}.png`;
 }
 
-.search-box button:hover {
-    color: var(--sun-gold);
-    background: #18181b;
+async function runSPCOutlookEngine() {
+    const listContainer = document.getElementById("live-bulletins");
+    try {
+        const response = await fetch(`https://api.weather.gov/alerts/active?point=${currentCoordinates}`, { headers: networkHeaders });
+        const data = await response.json();
+        
+        const severeAlerts = data.features || [];
+
+        if(severeAlerts.length === 0) {
+            listContainer.innerHTML = `<p style="color:#6e6e73; font-size:0.85rem;">No active severe weather warnings or convective watches in effect for this localized grid sector.</p>`;
+            return;
+        }
+
+        listContainer.innerHTML = "";
+        severeAlerts.forEach(alert => {
+            const p = alert.properties;
+            const eventName = p.event.toLowerCase();
+            const isHighPriority = eventName.includes("watch") || eventName.includes("warning") || eventName.includes("emergency");
+            
+            listContainer.innerHTML += `
+                <div class="bulletin-item ${isHighPriority ? 'alert-priority' : ''}">
+                    <h4>${p.event}</h4>
+                    <p><strong>Sector:</strong> ${p.areaDesc}</p>
+                    <p style="margin-top:6px; color:#a1a1aa; font-size:0.78rem; line-height:1.4;">${p.headline || "Alert details streaming live..."}</p>
+                </div>`;
+        });
+    } catch (err) {
+        listContainer.innerHTML = `<p style="color:var(--alert-crimson); font-size:0.85rem;">Error connection streaming NOAA hazard wire.</p>`;
+    }
 }
-
-.tab-bar {
-    display: flex;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 4px;
-    border-radius: 40px;
-    border: 1px solid var(--onyx-border);
-    overflow-x: auto;
-    max-width: 92%;
-    scrollbar-width: none;
-}
-.tab-bar::-webkit-scrollbar { display: none; }
-
-.tab-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    padding: 10px 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    white-space: nowrap;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    border-radius: 30px;
-}
-
-.tab-btn.active {
-    background: var(--onyx-panel);
-    color: var(--sun-gold);
-    border: 1px solid #262626;
-}
-
-.main-content {
-    max-width: 1400px;
-    margin: 30px auto;
-    padding: 0 20px;
-}
-
-.tab-content { display: none; }
-.tab-content.active-content { display: block; animation: fadeIn 0.35s ease-out; }
-
-.panel {
-    background: var(--onyx-card);
-    border: 1px solid var(--onyx-border);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9);
-    margin-bottom: 24px;
-}
-
-.panel-header {
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    border-bottom: 1px solid var(--onyx-border);
-    padding-bottom: 14px;
-    margin-bottom: 24px;
-}
-
-.text-alert { color: var(--alert-crimson); }
-.dashboard-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 24px; }
-.core-weather { display: flex; align-items: center; gap: 35px; }
-.twc-icon { width: 120px; height: 120px; object-fit: contain; }
-
-.temp-block h1 {
-    font-size: 5rem;
-    margin: 0;
-    font-weight: 100;
-    letter-spacing: -0.04em;
-}
-
-.data-table { width: 100%; border-collapse: collapse; }
-.data-table td { padding: 14px 0; border-bottom: 1px solid #141414; font-size: 0.95rem; }
-.data-table tr:last-child td { border-bottom: none; }
-.data-table .value { text-align: right; font-weight: 700; color: var(--sun-gold); }
-
-.spc-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.spc-column { display: flex; flex-direction: column; gap: 24px; }
-select {
-    width: 100%;
-    padding: 14px;
-    background: #000;
-    border: 1px solid var(--onyx-border);
-    color: var(--text-main);
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    outline: none;
-}
-
-.spc-graphic { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--onyx-border); }
-.bulletin-list { max-height: 440px; overflow-y: auto; }
-
-.bulletin-item {
-    background: #050505;
-    border-left: 4px solid var(--sun-gold);
-    padding: 14px;
-    margin-bottom: 12px;
-    border-radius: 0 8px 8px 0;
-}
-
-.bulletin-item.alert-priority { border-left-color: var(--alert-crimson); }
-.bulletin-item h4 { margin: 0 0 6px 0; font-size: 0.95rem; font-weight: 700; }
-.bulletin-item p { margin: 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; }
-
-.scroll-container-x { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 12px; }
-.iframe-wrapper { width: 100%; height: 650px; border-radius: 12px; overflow: hidden; }
-#radar-frame { width: 100%; height: 100%; border: none; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-@media(max-width:900px){ .dashboard-grid, .spc-dashboard { grid-template-columns: 1fr; } }
