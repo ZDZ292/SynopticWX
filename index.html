@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SlateWeather PRO</title>
+    <title>SynopticWeather</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header class="app-top-header">
-        <div class="search-pill-wrapper">
-            <input type="text" id="location-input" placeholder="Enter City or Zip...">
-            <button onclick="handleSearch()" class="search-btn">Search</button>
+        <div class="header-main-row">
+            <div class="brand-logo-container">
+                <img src="logo.png" alt="SynopticWeather" class="app-brand-logo" onerror="this.style.display='none';">
+            </div>
+            <div class="search-pill-wrapper">
+                <input type="text" id="location-input" placeholder="New York City">
+                <button onclick="handleSearch()" class="search-btn">🔍</button>
+            </div>
         </div>
         
         <nav class="app-section-nav">
@@ -19,8 +24,7 @@
                 <button class="section-pill active" onclick="switchSection('sec-today')">Today</button>
                 <button class="section-pill" onclick="switchSection('sec-hourly')">Hourly</button>
                 <button class="section-pill" onclick="switchSection('sec-daily')">Daily</button>
-                <button class="section-pill" onclick="switchSection('sec-radar')">Radar</button>
-                <button class="section-pill" onclick="switchSection('sec-storms')">SPC Outlooks</button>
+                <button class="section-pill" onclick="switchSection('sec-storms')">Storms</button>
             </div>
         </nav>
     </header>
@@ -32,8 +36,8 @@
                 <div class="hero-row">
                     <h1 id="obs-temp" class="giant-temp-text">--°</h1>
                     <div class="hero-icon-container">
-                        <img id="current-weather-icon" src="https://basmilis.github.io/weather-icons/production/fill/all/not-available.svg" alt="Weather Icon" class="animated-main-icon">
-                        <p id="obs-phrase" class="condition-subtitle">Initializing data networks...</p>
+                        <img id="current-weather-icon" src="https://basmilis.github.io/weather-icons/production/fill/all/clear-day.svg" alt="Weather Status" class="animated-main-icon">
+                        <p id="obs-phrase" class="condition-subtitle">Syncing Grids...</p>
                     </div>
                 </div>
                 
@@ -42,38 +46,39 @@
                     <span class="pipe">|</span>
                     <span id="obs-hilo">H: --°  L: --°</span>
                 </div>
-                <div class="rain-chance-line">Precipitation Probability: <span id="obs-rain-chance">--%</span></div>
+                <div class="rain-chance-line">Next hr rain chance: <span id="obs-rain-chance">0%</span></div>
             </div>
 
             <div class="app-card card-dark">
                 <div class="card-arrow-header">
-                    <h3>Regional Forecast Overview</h3>
+                    <h3>Today's Outlook</h3>
+                    <span class="chevron-right">›</span>
                 </div>
-                <p id="outlook-text-summary" class="outlook-paragraph">Processing geographic location data to generate standard dynamic synopsis...</p>
+                <p id="outlook-text-summary" class="outlook-paragraph">Connecting to diagnostic data networks to resolve regional sync parameters...</p>
             </div>
 
             <div class="app-card">
                 <h3>Atmospheric Metrics</h3>
                 <div class="metrics-list">
                     <div class="m-row"><span>Dewpoint</span><strong id="obs-dewpoint">--°F</strong></div>
-                    <div class="m-row"><span>Relative Humidity</span><strong id="obs-humidity">--%</strong></div>
+                    <div class="m-row"><span>Heat Index</span><strong id="obs-heat">--°F</strong></div>
                     <div class="m-row"><span>Wind Velocity</span><strong id="obs-wind">-- mph</strong></div>
-                    <div class="m-row"><span>Apparent Temperature</span><strong id="obs-heat">--°F</strong></div>
-                    <div class="m-row"><span>Precipitation (Current Hourly)</span><strong id="obs-rain-val">0.00 in</strong></div>
+                    <div class="m-row"><span>Precipitation (Hourly)</span><strong id="obs-rain-val">0.00 in</strong></div>
+                    <div class="m-row"><span>Relative Humidity</span><strong id="obs-humidity">--%</strong></div>
                 </div>
             </div>
         </div>
 
         <div id="sec-hourly" class="view-section">
             <div class="app-card">
-                <h3>24-Hour Continuous Timeline</h3>
+                <h3>72-Hour Continuous Timeline</h3>
                 <div id="hourly-scroller" class="horizontal-scroller-box"></div>
             </div>
         </div>
 
         <div id="sec-daily" class="view-section">
             <div class="app-card">
-                <h3>7-Day Extended Outlook</h3>
+                <h3>Extended Outlook</h3>
                 <div id="daily-stack" class="vertical-stack-box"></div>
             </div>
         </div>
@@ -86,11 +91,12 @@
 
         <div id="sec-storms" class="view-section">
             <div class="app-card">
-                <h3 class="text-alert">Storm Prediction Center Briefing Feed</h3>
-                <p class="outlook-paragraph" style="margin-bottom: 12px;">Real-time Convective Probability Outlook Matrices for Day 1 through Day 8 sectors.</p>
-                <div id="spc-outlook-container" class="spc-matrix-stack">
-                    <div class="spc-loading-msg">Querying convective outlook arrays...</div>
-                </div>
+                <h3 class="text-alert">Active Severe Alerts</h3>
+                <div id="alert-feed-box" class="feed-scroller"></div>
+            </div>
+            <div class="app-card">
+                <h3>SPC Convective Outlook</h3>
+                <img src="https://www.spc.noaa.gov/products/activity_loop.gif" alt="SPC Live" class="spc-fluid-img">
             </div>
         </div>
 
@@ -98,19 +104,16 @@
 
     <footer class="app-bottom-nav">
         <button class="nav-item active" onclick="switchSection('sec-today')">
+            <span class="nav-icon">🏠</span>
             <span class="nav-label">Home</span>
         </button>
-        <button class="nav-item" onclick="switchSection('sec-hourly')">
-            <span class="nav-label">Hourly</span>
-        </button>
-        <button class="nav-item" onclick="switchSection('sec-daily')">
-            <span class="nav-label">Daily</span>
+        <button class="nav-item" onclick="switchSection('sec-storms')">
+            <span class="nav-icon">⛈️</span>
+            <span class="nav-label">Storms</span>
         </button>
         <button class="nav-item" onclick="switchSection('sec-radar')">
+            <span class="nav-icon">🌀</span>
             <span class="nav-label">Radar</span>
-        </button>
-        <button class="nav-item" onclick="switchSection('sec-storms')">
-            <span class="nav-label">Outlooks</span>
         </button>
     </footer>
 
