@@ -3,123 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLATEWEATHER PRO // Severe Weather Center</title>
+    <title>SLATEWEATHER PRO // Media Control Center</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="nav-container">
-        <div class="header-controls">
-            <div class="search-box">
-                <input type="text" id="location-input" placeholder="Enter City, State (e.g. Chicago, IL)...">
-                <button onclick="handleSearch()">Search</button>
+    <header class="twc-header">
+        <div class="header-inner">
+            <div class="brand-block">
+                <span class="twc-logo">TWC</span>
+                <h1 id="station-header" class="location-title">Current Conditions // New York, NY</h1>
             </div>
             
-            <nav class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('tab-dashboard')">Dashboard</button>
-                <button class="tab-btn" onclick="switchTab('tab-hourly')">72-Hour</button>
-                <button class="tab-btn" onclick="switchTab('tab-daily')">7-Day</button>
-                <button class="tab-btn" onclick="switchTab('tab-radar')">Live Radar</button>
-                <button class="tab-btn" onclick="switchTab('tab-spc')">SPC Briefing</button>
-            </nav>
+            <div class="search-bar-container">
+                <input type="text" id="location-input" placeholder="Search City, State, or Zip Code...">
+                <button onclick="handleSearch()" class="search-submit-btn">Search</button>
+            </div>
         </div>
+        
+        <nav class="twc-nav">
+            <div class="nav-scroll-wrapper">
+                <button class="nav-link active" onclick="switchTab('tab-dashboard')">Today</button>
+                <button class="nav-link" onclick="switchTab('tab-hourly')">Hourly</button>
+                <button class="nav-link" onclick="switchTab('tab-daily')">7-Day</button>
+                <button class="nav-link" onclick="switchTab('tab-radar')">Radar</button>
+                <button class="nav-link" onclick="switchTab('tab-spc')">Severe Briefing</button>
+            </div>
+        </nav>
     </header>
 
-    <main class="main-content">
+    <main class="twc-container">
         <section id="tab-dashboard" class="tab-content active-content">
-            <div class="dashboard-grid">
-                <div class="panel main-panel">
-                    <div class="panel-header" id="station-header">Current Conditions</div>
-                    <div class="core-weather">
-                        <div class="icon-frame">
-                            <img id="current-twc-icon" src="icons/na.png" alt="Condition Icon" class="twc-icon">
+            <div class="twc-flexible-grid">
+                
+                <div class="twc-card hero-card">
+                    <div class="hero-main">
+                        <div class="hero-left">
+                            <span id="obs-temp" class="hero-degree">--°</span>
+                            <p id="obs-phrase" class="hero-condition">Initializing data feeds...</p>
                         </div>
-                        <div class="temp-block">
-                            <h1 id="obs-temp">--°F</h1>
-                            <p id="obs-phrase">Initializing data streams...</p>
+                        <div class="hero-right">
+                            <img id="current-twc-icon" src="icons/na.png" alt="Condition" class="hero-icon-img">
                         </div>
+                    </div>
+                    <div class="hero-footer-metrics">
+                        <div class="footer-stat"><span>Feels Like</span><strong id="obs-heatindex">--°</strong></div>
+                        <div class="footer-stat"><span>Wind Velocity</span><strong id="obs-wind">-- mph</strong></div>
+                        <div class="footer-stat"><span>Humidity</span><strong id="obs-humidity">--%</strong></div>
                     </div>
                 </div>
 
-                <div class="panel metrics-panel">
-                    <div class="panel-header">Atmospheric Metrics</div>
-                    <table class="data-table">
-                        <tr><td>Dewpoint</td><td id="obs-dewpoint" class="value">--°F</td></tr>
-                        <tr><td>Heat Index</td><td id="obs-heatindex" class="value">--°F</td></tr>
-                        <tr><td>Wind Velocity</td><td id="obs-wind" class="value">-- mph</td></tr>
-                        <tr><td>Rainfall (Hourly)</td><td id="obs-rain" class="value">0.00 in</td></tr>
-                        <tr><td>Relative Humidity</td><td id="obs-humidity" class="value">--%</td></tr>
-                    </table>
+                <div class="twc-card details-card">
+                    <h3 class="card-heading">Weather Details</h3>
+                    <div class="details-list">
+                        <div class="detail-row"><span>Dew Point</span><strong id="obs-dewpoint">--°F</strong></div>
+                        <div class="detail-row"><span>Precipitation (Hourly)</span><strong id="obs-rain">0.00 in</strong></div>
+                        <div class="detail-row"><span>National Warning System</span><strong class="text-alert">Monitoring Feed</strong></div>
+                    </div>
                 </div>
+
             </div>
         </section>
 
         <section id="tab-hourly" class="tab-content">
-            <div class="panel">
-                <div class="panel-header">72-Hour Chronological Forecast</div>
-                <div id="hourly-container" class="scroll-container-x"></div>
+            <div class="twc-card">
+                <h3 class="card-heading">72-Hour Chronological Forecast</h3>
+                <div id="hourly-container" class="twc-horizontal-scroll"></div>
             </div>
         </section>
 
         <section id="tab-daily" class="tab-content">
-            <div class="panel">
-                <div class="panel-header">Extended Outlook</div>
-                <div id="daily-container" class="grid-container-y"></div>
+            <div class="twc-card">
+                <h3 class="card-heading">7-Day Extended Outlook (Day & Night Tracking)</h3>
+                <div id="daily-container" class="twc-vertical-stack"></div>
             </div>
         </section>
 
         <section id="tab-radar" class="tab-content">
-            <div class="panel radar-panel">
-                <div class="panel-header">Interactive Base Reflectivity Loop</div>
-                <div class="iframe-wrapper">
+            <div class="twc-card radar-card">
+                <h3 class="card-heading">Local Base Reflectivity Loop</h3>
+                <div class="responsive-iframe-container">
                     <iframe id="radar-frame" src="https://radar.weather.gov/withandwithout.php?title=Radar%20Base%20Reflectivity" loading="lazy"></iframe>
                 </div>
             </div>
         </section>
 
         <section id="tab-spc" class="tab-content">
-            <div class="spc-dashboard">
-                <div class="spc-column">
-                    <div class="panel active-alerts-panel">
-                        <div class="panel-header text-alert">Local Active Hazards Feed</div>
-                        <div id="live-bulletins" class="bulletin-list">
-                            <p class="loading-text">Parsing local NOAA alert lines...</p>
-                        </div>
-                    </div>
-                    <div class="panel">
-                        <div class="panel-header">Current National Severe Activity Map</div>
-                        <img src="https://www.spc.noaa.gov/products/activity_loop.gif" alt="SPC Activity" class="spc-graphic">
+            <div class="twc-flexible-grid severe-split">
+                <div class="twc-card">
+                    <h3 class="card-heading text-alert">Active Grid Advisories</h3>
+                    <div id="live-bulletins" class="bulletin-scroller">
+                        <p class="loading-text">Parsing local NOAA alert lines...</p>
                     </div>
                 </div>
-
-                <div class="spc-column">
-                    <div class="panel">
-                        <div class="panel-header">Convective Outlook Map Feed</div>
-                        <div class="select-wrapper">
-                            <select id="outlook-select" onchange="updateOutlookImage()">
-                                <optgroup label="Day 1 Convective Hazards">
-                                    <option value="day1otlk">Day 1 Categorical Outlook</option>
-                                    <option value="day1torn">Day 1 Tornado Probability</option>
-                                    <option value="day1wind">Day 1 Wind Probability</option>
-                                    <option value="day1hail">Day 1 Hail Probability</option>
-                                </optgroup>
-                                <optgroup label="Day 2 Convective Hazards">
-                                    <option value="day2otlk">Day 2 Categorical Outlook</option>
-                                    <option value="day2torn">Day 2 Tornado Probability</option>
-                                    <option value="day2wind">Day 2 Wind Probability</option>
-                                    <option value="day2hail">Day 2 Hail Probability</option>
-                                </optgroup>
-                                <optgroup label="Medium Range Outlooks">
-                                    <option value="day3otlk">Day 3 Categorical Outlook</option>
-                                    <option value="day3prob">Day 3 Probabilistic Outlook</option>
-                                    <option value="day48prob">Day 4-8 Probabilistic Outlook</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                        <div class="graphic-frame">
-                            <img id="spc-outlook-img" src="https://www.spc.noaa.gov/products/outlook/day1otlk.gif" alt="Outlook Product" class="spc-graphic">
-                        </div>
+                <div class="twc-card">
+                    <h3 class="card-heading">Convective Outlook Map Feed</h3>
+                    <div class="custom-select-container">
+                        <select id="outlook-select" onchange="updateOutlookImage()">
+                            <optgroup label="Day 1 Hazards">
+                                <option value="day1otlk">Day 1 Categorical Outlook</option>
+                                <option value="day1torn">Day 1 Tornado Probability</option>
+                                <option value="day1wind">Day 1 Wind Probability</option>
+                                <option value="day1hail">Day 1 Hail Probability</option>
+                            </optgroup>
+                            <optgroup label="Day 2 Hazards">
+                                <option value="day2otlk">Day 2 Categorical Outlook</option>
+                                <option value="day2torn">Day 2 Tornado Probability</option>
+                                <option value="day2wind">Day 2 Wind Probability</option>
+                                <option value="day2hail">Day 2 Hail Probability</option>
+                            </optgroup>
+                        </select>
                     </div>
+                    <img id="spc-outlook-img" src="https://www.spc.noaa.gov/products/outlook/day1otlk.gif" alt="Outlook Product" class="fluid-spc-img">
                 </div>
             </div>
         </section>
