@@ -1,6 +1,12 @@
 // Dynamic sector targeted coordinates (Evanston, IL sector default)
 const TARGET_LAT_LON = "42.0451,-87.6877"; 
 
+// The National Weather Service API requires a clean User-Agent identifier. 
+// If you leave this blank or default, their network firewall returns a 403 Forbidden block.
+const networkHeaders = {
+    "User-Agent": "OnyxSevereWeatherConsole/2.0 (contact: github-deploy)"
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     runWeatherCore();
     runSPCOutlookEngine();
@@ -10,7 +16,7 @@ function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-content'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active-content');
-    if (event) event.currentTarget.classList.add('active');
+    if (window.event) window.event.currentTarget.classList.add('active');
 }
 
 function updateOutlookImage() {
@@ -21,22 +27,23 @@ function updateOutlookImage() {
 
 async function runWeatherCore() {
     try {
-        const pointRes = await fetch(`https://api.weather.gov/points/${TARGET_LAT_LON}`);
+        const pointRes = await fetch(`https://api.weather.gov/points/${TARGET_LAT_LON}`, { headers: networkHeaders });
         const pointData = await pointRes.json();
         
         fetchCurrentObservations(pointData.properties.observationStations);
         fetchTimelines(pointData.properties.forecast, pointData.properties.forecastHourly);
     } catch (err) {
         document.getElementById("obs-phrase").innerText = "Data telemetry offline.";
+        console.error("Core pipeline broken: ", err);
     }
 }
 
 async function fetchCurrentObservations(stationsUrl) {
     try {
-        const resStations = await fetch(stationsUrl);
+        const resStations = await fetch(stationsUrl, { headers: networkHeaders });
         const dataStations = await resStations.json();
         
-        const latestObsRes = await fetch(`${dataStations.features[0].id}/observations/latest`);
+        const latestObsRes = await fetch(`${dataStations.features[0].id}/observations/latest`, { headers: networkHeaders });
         const obs = await latestObsRes.json();
         const p = obs.properties;
 
@@ -52,12 +59,15 @@ async function fetchCurrentObservations(stationsUrl) {
         document.getElementById("obs-phrase").innerText = p.textDescription || "Clear Systems";
 
         parseTWCLocalIcon(p.icon || "", p.textDescription || "");
-    } catch(e) { console.error("Observations system issue:", e); }
+    } catch(e) { 
+        console.error("Observations system issue:", e); 
+        document.getElementById("obs-phrase").innerText = "Failed parsing station metrics.";
+    }
 }
 
 async function fetchTimelines(dailyUrl, hourlyUrl) {
     try {
-        const hRes = await fetch(hourlyUrl);
+        const hRes = await fetch(hourlyUrl, { headers: networkHeaders });
         const hData = await hRes.json();
         const container = document.getElementById("hourly-container");
         container.innerHTML = "";
@@ -72,7 +82,7 @@ async function fetchTimelines(dailyUrl, hourlyUrl) {
                 </div>`;
         });
 
-        const dRes = await fetch(dailyUrl);
+        const dRes = await fetch(dailyUrl, { headers: networkHeaders });
         const dData = await dRes.json();
         const dContainer = document.getElementById("daily-container");
         dContainer.innerHTML = "";
@@ -110,32 +120,32 @@ function parseTWCLocalIcon(nwsUrl, desc) {
 async function runSPCOutlookEngine() {
     const listContainer = document.getElementById("live-bulletins");
     try {
-        const response = await fetch("https://api.weather.gov/alerts/active?area=US");
+        // Optimized to filter alerts specifically targeting your point region 
+        // to prevent mobile browser memory drops.
+        const response = await fetch(`https://api.weather.gov/alerts/active?point=${TARGET_LAT_LON}`, { headers: networkHeaders });
         const data = await response.json();
         
-        const severeAlerts = data.features.filter(f => {
-            const type = f.properties.event.toLowerCase();
-            return type.includes("watch") || type.includes("discussion") || type.includes("mesoscale") || type.includes("warning");
-        }).slice(0, 25);
+        const severeAlerts = data.features || [];
 
         if(severeAlerts.length === 0) {
-            listContainer.innerHTML = `<p style="color:#6e6e73; font-size:0.85rem;">No active severe convective or mesoscale discussions issued across the CONUS.</p>`;
+            listContainer.innerHTML = `<p style="color:#6e6e73; font-size:0.85rem;">No active severe warnings, watches, or advisories currently in effect for this sector.</p>`;
             return;
         }
 
         listContainer.innerHTML = "";
         severeAlerts.forEach(alert => {
             const p = alert.properties;
-            const isHighPriority = p.event.toLowerCase().includes("watch") || p.event.toLowerCase().includes("warning");
+            const eventName = p.event.toLowerCase();
+            const isHighPriority = eventName.includes("watch") || eventName.includes("warning") || eventName.includes("emergency");
             
             listContainer.innerHTML += `
                 <div class="bulletin-item ${isHighPriority ? 'alert-priority' : ''}">
                     <h4>${p.event}</h4>
                     <p><strong>Sector:</strong> ${p.areaDesc}</p>
-                    <p style="margin-top:6px; color:#a1a1aa; font-size:0.78rem; line-height:1.4;">${p.headline || "Telemetry wire text parsing live..."}</p>
+                    <p style="margin-top:6px; color:#a1a1aa; font-size:0.78rem; line-height:1.4;">${p.headline || "Active local atmospheric product text payload tracking live..."}</p>
                 </div>`;
         });
     } catch (err) {
-        listContainer.innerHTML = `<p style="color:var(--alert-crimson); font-size:0.85rem;">Alert connection error.</p>`;
+        listContainer.innerHTML = `<p style="color:var(--alert-crimson); font-size:0.85rem;">Alert connection error parsing NOAA feeds.</p>`;
     }
 }
