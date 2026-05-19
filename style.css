@@ -1,313 +1,49 @@
-:root {
-    --bg-onyx-deep: #08080a;
-    --card-glass: rgba(22, 22, 26, 0.7);
-    --card-border: rgba(255, 255, 255, 0.05);
-    --text-pure: #ffffff;
-    --text-gray: #929298;
-    --alert-crimson: #ef4444;
-}
+/* =================================================================
+   SLATEWEATHER PRO RESIZABLE & COMPACT CORE OVERHAUL 
+   ================================================================= */
 
-body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg-onyx-deep);
-    color: var(--text-pure);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-}
-
-/* Sticky Header System */
-.app-top-header {
-    background: rgba(12, 12, 15, 0.7);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    padding-top: env(safe-area-inset-top, 8px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.header-main-row {
-    max-width: 450px;
-    margin: 4px auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 92%;
-    gap: 12px;
-}
-
-.brand-logo-container {
-    display: flex;
-    align-items: center;
-}
-
-.app-brand-logo {
-    height: 32px;
-    width: auto;
-    object-fit: contain;
-}
-
-.search-pill-wrapper {
-    flex: 1;
-    display: flex;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 20px;
-    padding: 6px 12px;
-    align-items: center;
-}
-
-.search-pill-wrapper input {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text-pure);
-    font-size: 0.9rem;
-    font-weight: 600;
-    width: 100%;
-}
-
-.search-btn {
-    background: transparent;
-    border: none;
-    font-size: 0.85rem;
-    cursor: pointer;
-    color: var(--text-gray);
-}
-
-/* Navigation Section Horizontal Pills */
-.app-section-nav {
-    max-width: 450px;
+/* Container compression and fluid resizing */
+body, .app-container, .dashboard {
+    max-width: 100% !important;
+    width: 100vw;
     margin: 0 auto;
-    padding: 8px 0;
-    width: 94%;
-}
-
-.pill-track {
-    display: flex;
-    overflow-x: auto;
-    gap: 8px;
-    scrollbar-width: none;
-}
-.pill-track::-webkit-scrollbar { display: none; }
-
-.section-pill {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.01);
-    color: var(--text-pure);
-    padding: 6px 16px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-radius: 20px;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
-.section-pill.active {
-    background: var(--text-pure);
-    color: #000000;
-    font-weight: 700;
-}
-
-/* Responsive View Container */
-.app-container {
-    max-width: 440px;
-    margin: 0 auto;
-    padding: 8px 14px 100px 14px;
+    padding: 12px !important;
     box-sizing: border-box;
+    font-size: 0.9rem !important; /* Global layout scaling down */
 }
 
-.view-section { display: none; }
-.view-section.active-view { display: block; }
-
-/* Main Summary Metrics Blocks */
-.hero-weather-block {
-    padding: 20px 4px 24px 4px;
+/* Compact layout cards matching Onyx/Slate aesthetics */
+.hourly-card, .forecast-row, .metric-row, .bulletin-card {
+    padding: 8px 12px !important;
+    margin: 4px 0 !important;
+    border-radius: 6px !important;
+    background: #1e222b !important; /* Clean slate-onyx backing */
 }
 
-.hero-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+/* Shrink image footprint so they fit small scales */
+.timeline-icon, .row-icon, .main-weather-icon {
+    max-width: 32px !important;
+    height: auto !important;
 }
 
-.giant-temp-text {
-    font-size: 5.8rem;
-    font-weight: 200;
-    margin: 0;
-    line-height: 0.85;
-    letter-spacing: -0.04em;
+.main-weather-icon {
+    max-width: 80px !important; /* Prevents giant center icon blowing out layout */
 }
 
-.hero-icon-container {
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+/* Flex layout compression */
+.hourly-timeline, .timeline-scroll {
+    gap: 8px !important;
+    padding: 6px 0 !important;
 }
 
-.animated-main-icon {
-    width: 82px;
-    height: 82px;
-    object-fit: contain;
+/* Universal text safety - No Emojis allowed */
+span, div, h1, h2, h3, h4, p {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    text-shadow: none !important;
 }
 
-.condition-subtitle {
-    margin: 4px 0 0 0;
-    font-size: 1.15rem;
-    font-weight: 700;
-}
-
-.hero-submetrics {
-    margin-top: 16px;
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-.hero-submetrics .pipe { color: rgba(255, 255, 255, 0.2); margin: 0 6px; }
-
-.rain-chance-line {
-    margin-top: 6px;
-    font-size: 0.9rem;
-    color: var(--text-gray);
-}
-
-/* Cards & Content Containers */
-.app-card {
-    background: var(--card-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-}
-.app-card.card-dark { background: rgba(14, 14, 17, 0.9); }
-.app-card.no-pad { padding: 0; overflow: hidden; }
-
-.app-card h3 {
-    font-size: 0.95rem;
-    color: var(--text-pure);
-    margin: 0 0 14px 0;
-    font-weight: 700;
-}
-
-.card-arrow-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-}
-.card-arrow-header h3 { margin: 0; }
-.chevron-right { color: var(--text-gray); font-size: 1.2rem; }
-
-.outlook-paragraph {
-    margin: 0;
-    font-size: 0.88rem;
-    line-height: 1.45;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.metrics-list { display: flex; flex-direction: column; }
-.m-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    font-size: 0.9rem;
-}
-.m-row:last-child { border-bottom: none; }
-.m-row span { color: rgba(255, 255, 255, 0.6); }
-.m-row strong { font-weight: 600; }
-
-/* Horizontal Hourly Timeline Strip */
-.horizontal-scroller-box {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scrollbar-width: none;
-}
-.horizontal-scroller-box::-webkit-scrollbar { display: none; }
-
-.h-node {
-    flex: 0 0 72px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
-    padding: 10px 4px;
-    text-align: center;
-}
-.h-node .h-time { font-size: 0.75rem; color: var(--text-gray); font-weight: 600; }
-.h-node .h-svg { width: 34px; height: 34px; margin: 6px auto; display: block; object-fit: contain; }
-.h-node .h-temp { font-size: 1.05rem; font-weight: 600; }
-
-/* Vertical Daily Stack Rows */
-.vertical-stack-box { display: flex; flex-direction: column; gap: 6px; }
-.v-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid rgba(255, 255, 255, 0.02);
-    padding: 10px 14px;
-    border-radius: 12px;
-}
-.v-day { width: 30%; font-size: 0.88rem; font-weight: 600; }
-.v-icon-frame { width: 20%; display: flex; align-items: center; }
-.v-svg { width: 32px; height: 32px; object-fit: contain; }
-.v-temp { width: 20%; font-size: 0.95rem; font-weight: 600; text-align: right; }
-.v-desc { width: 30%; font-size: 0.78rem; color: var(--text-gray); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* Frame Layouts */
-.frame-card { height: 400px; }
-#radar-frame { width: 100%; height: 100%; border: none; }
-
-/* Alert Modules */
-.feed-scroller { max-height: 260px; overflow-y: auto; }
-.bulletin-card {
-    background: rgba(0, 0, 0, 0.2);
-    border-left: 3px solid #eab308;
-    padding: 10px 12px;
-    border-radius: 0 8px 8px 0;
-    margin-bottom: 8px;
-}
-.bulletin-card.priority { border-left-color: var(--alert-crimson); }
-.bulletin-card h4 { margin: 0 0 4px 0; font-size: 0.85rem; }
-.bulletin-card p { margin: 0; font-size: 0.78rem; color: var(--text-gray); }
-.spc-fluid-img { width: 100%; height: auto; border-radius: 8px; margin-top: 8px; }
-
-/* Bottom Tab Navigation Bar */
-.app-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(10, 10, 13, 0.88);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    display: flex;
-    justify-content: space-around;
-    padding: 8px 0 calc(env(safe-area-inset-bottom, 10px) + 2px) 0;
-    z-index: 9999;
-}
-
-.nav-item {
-    background: transparent;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: var(--text-gray);
+/* Ensure control nodes are explicitly interactive */
+button, input, .search-box *, .search-bar * {
     cursor: pointer;
-    gap: 3px;
-    width: 24%;
+    pointer-events: auto !important;
 }
-
-.nav-icon { font-size: 1.25rem; }
-.nav-label { font-size: 0.7rem; font-weight: 500; }
-.nav-item.active { color: var(--text-pure); }
-.text-alert { color: var(--alert-crimson); }
