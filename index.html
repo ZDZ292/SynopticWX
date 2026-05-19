@@ -3,40 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SlateWeather PRO</title>
+    <title>SlateWeather PRO | Tactical Control Center</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="app-container">
-        <header class="station-header">
+        <header class="station-header animate-fade-in">
             <div class="brand-group">
-                <img src="logo.png" alt="SlateWeather PRO logo" class="station-logo">
+                <div class="logo-wrapper">
+                    <img src="logo.png" alt="SlateWeather PRO Logo" class="station-logo" onerror="this.style.display='none'">
+                    <div class="logo-pulse"></div>
+                </div>
                 <h1 class="station-title">SLATEWEATHER PRO</h1>
             </div>
             <div class="control-panel">
-                <input type="text" id="searchInput" placeholder="Query location or grid station...">
+                <div class="input-glow-container">
+                    <input type="text" id="searchInput" placeholder="QUERY INTERCEPT STATION...">
+                </div>
                 <button id="searchBtn">EXECUTE</button>
             </div>
         </header>
 
-        <div id="alerts-container" class="alerts-box">
-            <p class="status-msg">Synchronizing hazard telemetry channels...</p>
+        <div id="alerts-container" class="alerts-box animate-slide-up">
+            <p class="status-msg scanning-text">SYNCHRONIZING HAZARD TELEMETRY CHANNELS...</p>
         </div>
 
-        <main class="dashboard-grid">
+        <main id="viewport-frame" class="view-panel animate-slide-up">
             
-            <section class="core-panel">
-                <div class="main-card">
+            <div id="view-current" class="dashboard-pane active">
+                <div class="main-card live-card">
+                    <div class="scan-line"></div>
                     <div class="current-weather">
                         <div class="metrics-left">
                             <h2 class="location-title">CHICAGO</h2>
                             <div class="main-temp">--</div>
-                            <div class="condition-text">Connecting to meteorological arrays...</div>
+                            <div class="condition-text">CONNECTING TO METEOROLOGICAL ARRAYS...</div>
                             <div class="hi-lo">HIGH: --</div>
                         </div>
                         <div class="metrics-right">
-                            <img src="icons/44.png" alt="Dynamic condition asset" class="main-weather-icon">
+                            <img src="icons/44.png" alt="Condition vector asset" class="main-weather-icon">
                         </div>
                     </div>
                 </div>
@@ -62,23 +68,61 @@
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <section class="forecast-panel">
-                <div class="module-title">HOURLY GRID TIMELINE</div>
-                <div class="hourly-section">
-                    <div id="hourly-container" class="hourly-timeline">
-                        </div>
-                </div>
-
-                <div class="module-title">EXTENDED STRATEGIC OUTLOOK</div>
+            <div id="view-outlook" class="dashboard-pane">
+                <div class="module-title">STRATEGIC EXTENDED OUTLOOK</div>
                 <div class="daily-section">
                     <div id="daily-container" class="forecast-list">
                         </div>
                 </div>
-            </section>
+            </div>
+
+            <div id="view-hourly" class="dashboard-pane">
+                <div class="module-title">72-HOUR DEEP TIMELINE METRICS</div>
+                <div class="hourly-section">
+                    <div id="hourly-container" class="hourly-grid-layout">
+                        </div>
+                </div>
+            </div>
+
+            <div id="view-radar" class="dashboard-pane">
+                <div class="module-title">LIVE RADAR STREAMING CAPTURE</div>
+                <div class="radar-frame-container">
+                    <iframe id="radar-frame" src="about:blank" allowfullscreen></iframe>
+                </div>
+            </div>
+
+            <div id="view-bulletins" class="dashboard-pane">
+                <div class="module-title">SPC / WPC / NWS SECTOR DISCUSSIONS</div>
+                <div id="bulletins-deck" class="bulletins-container">
+                    <p class="status-msg">POLLING ACTIVE STRATEGIC OUTLOOK FILES...</p>
+                </div>
+            </div>
 
         </main>
+
+        <div id="diagnostic-modal" class="modal-overlay">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3 id="modal-alert-title">HAZARD DIAGNOSTIC BRIEF</h3>
+                    <button id="modal-close-btn">CLOSE</button>
+                </div>
+                <div class="modal-body">
+                    <pre id="modal-alert-details">Analyzing atmospheric telemetry packet...</pre>
+                </div>
+            </div>
+        </div>
+
+        <nav class="tactical-deck-nav animate-slide-up">
+            <div class="tab-scroller">
+                <button class="nav-tab active" data-target="view-current">CURRENT</button>
+                <button class="nav-tab" data-target="view-outlook">OUTLOOK</button>
+                <button class="nav-tab" data-target="view-hourly">HOURLY</button>
+                <button class="nav-tab" data-target="view-radar" id="radar-tab-btn">RADAR</button>
+                <button class="nav-tab" data-target="view-bulletins">BULLETINS</button>
+            </div>
+        </nav>
     </div>
 
     <script src="app.js"></script>
