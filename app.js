@@ -2,7 +2,7 @@
 // 1. STATE PROPERTIES & AREA DATA ANCHOR
 // =================================================================
 const NWS_API_BASE = "https://api.weather.gov";
-let currentLat = 42.0451; // Locked to Chicago-Evanston Sector Coordinates
+let currentLat = 42.0451; // Chicagoland Default
 let currentLon = -87.6877;
 
 // =================================================================
@@ -46,7 +46,7 @@ async function runGeocodingPipeline(query) {
             
             const titleEl = document.querySelector(".location-title");
             if (titleEl) {
-                titleEl.textContent = data[0].display_name.split(',')[0];
+                titleEl.textContent = data[0].display_name.split(',')[0].toUpperCase();
             }
             
             await initializeDashboard();
@@ -92,7 +92,7 @@ async function fetchMeteorologicalFeeds(lat, lon) {
     } catch (err) {
         console.error("Data pipeline fault. Fallback engaged:", err);
         const conditionTxt = document.querySelector(".condition-text");
-        if (conditionTxt) conditionTxt.textContent = "Data feed transmission delayed";
+        if (conditionTxt) conditionTxt.textContent = "DATA LINK TIMEOUT";
     }
 }
 
@@ -108,8 +108,8 @@ function renderPrimaryWorkspace(currentHourly, currentDaily) {
     const mainIcon = document.querySelector(".main-weather-icon");
     
     if (tempEl) tempEl.textContent = `${currentHourly.temperature}°`;
-    if (condEl) condEl.textContent = currentHourly.shortForecast;
-    if (hiLoEl && currentDaily) hiLoEl.textContent = `High: ${currentDaily.temperature}°`;
+    if (condEl) condEl.textContent = currentHourly.shortForecast.toUpperCase();
+    if (hiLoEl && currentDaily) hiLoEl.textContent = `HIGH: ${currentDaily.temperature}°`;
     
     if (mainIcon && currentHourly.icon) {
         const assignedCode = mapForecastToAssetIndex(currentHourly.shortForecast, currentHourly.isDaytime);
@@ -119,7 +119,7 @@ function renderPrimaryWorkspace(currentHourly, currentDaily) {
     // Core Parameters Parsing
     const dpVal = currentHourly.dewpoint?.value ? `${Math.round(currentHourly.dewpoint.value * 9/5 + 32)}°F` : "--";
     const rhVal = currentHourly.relativeHumidity?.value ? `${currentHourly.relativeHumidity.value}%` : "--";
-    const windVal = currentHourly.windSpeed ? `${currentHourly.windDirection || ""} ${currentHourly.windSpeed}` : "--";
+    const windVal = currentHourly.windSpeed ? `${currentHourly.windDirection || ""} ${currentHourly.windSpeed}`.toUpperCase() : "--";
     
     const dpEl = document.getElementById("metric-dewpoint");
     const rhEl = document.getElementById("metric-humidity");
@@ -147,7 +147,7 @@ function renderHourlyTimeline(periods) {
         const iconIndex = mapForecastToAssetIndex(hour.shortForecast, hour.isDaytime);
         
         card.innerHTML = `
-            <span class="time">${timeFormatted}</span>
+            <span class="time">${timeFormatted.toUpperCase()}</span>
             <img src="${formatAssetPathString(iconIndex)}" alt="Timeline icon" class="timeline-icon" />
             <span class="temp">${hour.temperature}°</span>
         `;
@@ -168,10 +168,10 @@ function renderDailyForecast(periods) {
         const iconIndex = mapForecastToAssetIndex(period.shortForecast, period.isDaytime);
         
         row.innerHTML = `
-            <span class="day-name">${period.name}</span>
+            <span class="day-name">${period.name.toUpperCase()}</span>
             <img src="${formatAssetPathString(iconIndex)}" alt="Forecast icon" class="row-icon" />
             <span class="row-temp">${period.temperature}°</span>
-            <span class="row-desc">${period.shortForecast}</span>
+            <span class="row-desc">${period.shortForecast.toUpperCase()}</span>
         `;
         container.appendChild(row);
     });
@@ -190,20 +190,17 @@ function mapForecastToAssetIndex(forecastText, isDay) {
     if (!forecastText) return 44;
     const desc = forecastText.toLowerCase();
     
-    // Convective Systems & Severe
     if (desc.includes("tornado")) return 0;
     if (desc.includes("hurricane") || desc.includes("typhoon")) return 2;
     if (desc.includes("tropical storm")) return 1;
     if (desc.includes("severe") || desc.includes("strong thunderstorm")) return 3;
     
-    // Thunderstorm Core Variations
     if (desc.includes("thunderstorm") || desc.includes("tsra")) {
         if (desc.includes("scattered")) return isDay ? 38 : 47;
         if (desc.includes("isolated")) return 37;
         return 4;
     }
     
-    // Solid Transitions / Winter Mixes
     if (desc.includes("blizzard")) return 43;
     if (desc.includes("heavy snow")) return 42;
     if (desc.includes("heavy rain")) return 40;
@@ -222,7 +219,6 @@ function mapForecastToAssetIndex(forecastText, isDay) {
     if (desc.includes("snow")) return 16;
     if (desc.includes("hail") || desc.includes("mixed rain and hail")) return 35;
     
-    // Liquid Conditions
     if (desc.includes("showers") || desc.includes("shra")) {
         if (desc.includes("scattered")) return isDay ? 39 : 45;
         return 11;
@@ -230,7 +226,6 @@ function mapForecastToAssetIndex(forecastText, isDay) {
     if (desc.includes("drizzle")) return 9;
     if (desc.includes("rain")) return 12;
     
-    // Atmospheric Obstructions & Dynamics
     if (desc.includes("sandstorm") || desc.includes("dust")) return 19;
     if (desc.includes("fog")) return 20;
     if (desc.includes("haze")) return 21;
@@ -240,7 +235,6 @@ function mapForecastToAssetIndex(forecastText, isDay) {
     if (desc.includes("cold") || desc.includes("frigid")) return 25;
     if (desc.includes("hot")) return 36;
     
-    // Cloud Profiling Tiers
     if (desc.includes("cloudy") || desc.includes("overcast") || desc.includes("ovc")) return 26;
     if (desc.includes("mostly cloudy") || desc.includes("bkn")) return isDay ? 28 : 27;
     if (desc.includes("partly cloudy") || desc.includes("sct")) return isDay ? 30 : 29;
@@ -264,7 +258,7 @@ async function syncActiveConvectiveAlerts(lat, lon) {
         const features = data.features || [];
         
         if (features.length === 0) {
-            box.innerHTML = `<p class="status-msg">No active atmospheric hazards tracked for this station area.</p>`;
+            box.innerHTML = `<p class="status-msg">NO ACTIVE ATMOSPHERIC HAZARDS IN SECTOR</p>`;
             return;
         }
         
@@ -275,12 +269,12 @@ async function syncActiveConvectiveAlerts(lat, lon) {
             const card = document.createElement("div");
             card.className = "alert-bulletin-card";
             card.innerHTML = `
-                <h4>${props.event || "Meteorological Advisory"}</h4>
-                <p>${props.headline || "Product output initialized by tactical forecasting center."}</p>
+                <h4>${props.event.toUpperCase()}</h4>
+                <p>${props.headline ? props.headline.toUpperCase() : "METEOROLOGICAL DATA UPDATE ISSUED BY REGIONAL DESK."}</p>
             `;
             box.appendChild(card);
         });
     } catch (err) {
-        box.innerHTML = `<p class="status-msg">Advisory data stream interrupted.</p>`;
+        box.innerHTML = `<p class="status-msg">ADVISORY STREAM SUSPENDED</p>`;
     }
 }
