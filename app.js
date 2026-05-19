@@ -1,82 +1,81 @@
 // =================================================================
-// 1. GLOBAL CORE CONFIGURATION & LOCAL SECTOR LOCK
+// 1. STATE PROPERTIES & AREA DATA ANCHOR
 // =================================================================
 const NWS_API_BASE = "https://api.weather.gov";
-let currentLat = 42.0451;  // Default locked to Evanston/Chicagoland Area
+let currentLat = 42.0451; // Locked to Chicago-Evanston Sector Coordinates
 let currentLon = -87.6877;
 
-// Exception-safe DOM injection container to ensure zero script-freeze crashes
-const safeSetText = (selector, text) => {
-    const element = document.querySelector(selector);
-    if (element) element.textContent = text;
-};
-
 // =================================================================
-// 2. INITIALIZATION ENGINE & EVENT BINDINGS
+// 2. RUNTIME EVENT LOOPS
 // =================================================================
 document.addEventListener("DOMContentLoaded", () => {
     initializeDashboard();
-    setupInterfaceControls();
+    setupActionListeners();
 });
 
 async function initializeDashboard() {
-    await fetchOperationalMetrics(currentLat, currentLon);
-    await syncRegionalHazards(currentLat, currentLon);
+    await fetchMeteorologicalFeeds(currentLat, currentLon);
+    await syncActiveConvectiveAlerts(currentLat, currentLon);
 }
 
-function setupInterfaceControls() {
-    const searchBtn = document.querySelector(".search-box button, .search-bar button, #searchBtn");
-    const searchInput = document.querySelector(".search-box input, .search-bar input, #searchInput");
+function setupActionListeners() {
+    const searchBtn = document.getElementById("searchBtn");
+    const searchInput = document.getElementById("searchInput");
     
     if (searchBtn && searchInput) {
-        searchBtn.addEventListener("click", () => triggerSearchPipeline(searchInput.value));
+        searchBtn.addEventListener("click", () => runGeocodingPipeline(searchInput.value));
         searchInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") triggerSearchPipeline(searchInput.value);
+            if (e.key === "Enter") runGeocodingPipeline(searchInput.value);
         });
     }
 }
 
-async function triggerSearchPipeline(query) {
+// =================================================================
+// 3. GEOCODING AND POSITION INTEGRATION
+// =================================================================
+async function runGeocodingPipeline(query) {
     if (!query) return;
     try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-        if (!response.ok) return;
-        const data = await response.json();
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+        if (!res.ok) return;
+        const data = await res.json();
         
         if (data && data.length > 0) {
             currentLat = parseFloat(data[0].lat);
             currentLon = parseFloat(data[0].lon);
             
-            const titleElement = document.querySelector(".location-title, header h1, .current-location");
-            if (titleElement) titleElement.textContent = data[0].display_name.split(',')[0];
+            const titleEl = document.querySelector(".location-title");
+            if (titleEl) {
+                titleEl.textContent = data[0].display_name.split(',')[0];
+            }
             
             await initializeDashboard();
         }
     } catch (err) {
-        console.error("Geocoding resolution interrupted:", err);
+        console.error("Geocoding validation interrupted:", err);
     }
 }
 
 // =================================================================
-// 3. FAULT-TOLERANT NWS STREAM AGGREGATION
+// 4. TELEMETRY STREAM INGESTION ENGINE
 // =================================================================
-async function fetchOperationalMetrics(lat, lon) {
+async function fetchMeteorologicalFeeds(lat, lon) {
     try {
-        const pointsResponse = await fetch(`${NWS_API_BASE}/points/${lat},${lon}`);
-        if (!pointsResponse.ok) throw new Error("Grid point telemetry unresolvable");
-        const pointsData = await pointsResponse.json();
+        const pointsRes = await fetch(`${NWS_API_BASE}/points/${lat},${lon}`);
+        if (!pointsRes.ok) throw new Error("Operational grid target rejected");
+        const pointsData = await pointsRes.json();
         
-        const dailyUrl = pointsData?.properties?.forecast;
-        const hourlyUrl = pointsData?.properties?.forecastHourly;
+        const forecastDailyUrl = pointsData?.properties?.forecast;
+        const forecastHourlyUrl = pointsData?.properties?.forecastHourly;
         
-        if (!dailyUrl || !hourlyUrl) throw new Error("Operational endpoint links absent");
+        if (!forecastDailyUrl || !forecastHourlyUrl) throw new Error("Grid stream links unavailable");
         
         const [dailyRes, hourlyRes] = await Promise.all([
-            fetch(dailyUrl),
-            fetch(hourlyUrl)
+            fetch(forecastDailyUrl),
+            fetch(forecastHourlyUrl)
         ]);
         
-        if (!dailyRes.ok || !hourlyRes.ok) throw new Error("Forecast ingestion stream failure");
+        if (!dailyRes.ok || !hourlyRes.ok) throw new Error("Product delivery streams offline");
         
         const dailyData = await dailyRes.json();
         const hourlyData = await hourlyRes.json();
@@ -84,176 +83,204 @@ async function fetchOperationalMetrics(lat, lon) {
         const hourlyPeriods = hourlyData?.properties?.periods;
         const dailyPeriods = dailyData?.properties?.periods;
         
-        if (!hourlyPeriods || !dailyPeriods) throw new Error("Malformed data structure");
+        if (!hourlyPeriods || !dailyPeriods) throw new Error("Data parse fault");
         
-        renderPrimaryDisplay(hourlyPeriods[0], dailyPeriods[0]);
+        renderPrimaryWorkspace(hourlyPeriods[0], dailyPeriods[0]);
         renderHourlyTimeline(hourlyPeriods);
         renderDailyForecast(dailyPeriods);
         
     } catch (err) {
-        console.error("Telemetry stream broken. Safe fallback active:", err);
-        safeSetText(".condition-text", "Data feed temporarily offline");
+        console.error("Data pipeline fault. Fallback engaged:", err);
+        const conditionTxt = document.querySelector(".condition-text");
+        if (conditionTxt) conditionTxt.textContent = "Data feed transmission delayed";
     }
 }
 
 // =================================================================
-// 4. CLEAN DATA RENDERING PIPELINES (ZERO EMOJIS)
+// 5. DATA INJECTION & RENDERING (ZERO EMOJIS)
 // =================================================================
-function renderPrimaryDisplay(currentHourly, currentDaily) {
+function renderPrimaryWorkspace(currentHourly, currentDaily) {
     if (!currentHourly) return;
     
-    safeSetText(".today-temp, .main-temp, .current-temp", `${currentHourly.temperature} degrees`);
-    safeSetText(".condition-text, .weather-desc", currentHourly.shortForecast);
+    const tempEl = document.querySelector(".main-temp");
+    const condEl = document.querySelector(".condition-text");
+    const hiLoEl = document.querySelector(".hi-lo");
+    const mainIcon = document.querySelector(".main-weather-icon");
     
-    const mainIcon = document.querySelector(".main-weather-icon, .today-icon img, .current-icon img");
+    if (tempEl) tempEl.textContent = `${currentHourly.temperature}°`;
+    if (condEl) condEl.textContent = currentHourly.shortForecast;
+    if (hiLoEl && currentDaily) hiLoEl.textContent = `High: ${currentDaily.temperature}°`;
+    
     if (mainIcon && currentHourly.icon) {
-        const mappedCode = parseNwsUrlToAssetIndex(currentHourly.icon);
-        mainIcon.src = generateLocalAssetPath(mappedCode);
+        const assignedCode = mapForecastToAssetIndex(currentHourly.shortForecast, currentHourly.isDaytime);
+        mainIcon.src = formatAssetPathString(assignedCode);
     }
     
-    if (currentDaily) {
-        safeSetText(".hi-lo, .temp-range, .high-low", `High: ${currentDaily.temperature} degrees`);
-    }
+    // Core Parameters Parsing
+    const dpVal = currentHourly.dewpoint?.value ? `${Math.round(currentHourly.dewpoint.value * 9/5 + 32)}°F` : "--";
+    const rhVal = currentHourly.relativeHumidity?.value ? `${currentHourly.relativeHumidity.value}%` : "--";
+    const windVal = currentHourly.windSpeed ? `${currentHourly.windDirection || ""} ${currentHourly.windSpeed}` : "--";
     
-    // Safely update atmospheric parameters table blocks
-    populateMetricCard("Dewpoint", currentHourly.dewpoint?.value ? `${Math.round(currentHourly.dewpoint.value * 9/5 + 32)} F` : "--");
-    populateMetricCard("Humidity", currentHourly.relativeHumidity?.value ? `${currentHourly.relativeHumidity.value}%` : "--");
-    populateMetricCard("Wind", currentHourly.windSpeed || "--");
-    populateMetricCard("Apparent", `${currentHourly.temperature} F`);
+    const dpEl = document.getElementById("metric-dewpoint");
+    const rhEl = document.getElementById("metric-humidity");
+    const windEl = document.getElementById("metric-wind");
+    const appEl = document.getElementById("metric-apparent");
+    
+    if (dpEl) dpEl.textContent = dpVal;
+    if (rhEl) rhEl.textContent = rhVal;
+    if (windEl) windEl.textContent = windVal;
+    if (appEl) appEl.textContent = `${currentHourly.temperature}°F`;
 }
 
 function renderHourlyTimeline(periods) {
-    const scrollContainer = document.getElementById("hourly-container") || document.querySelector(".hourly-timeline, .timeline-scroll");
-    if (!scrollContainer || !periods) return;
+    const container = document.getElementById("hourly-container");
+    if (!container || !periods) return;
     
-    scrollContainer.innerHTML = "";
-    const primaryDayHours = periods.slice(0, 24);
+    container.innerHTML = "";
+    const leading24Hours = periods.slice(0, 24);
     
-    primaryDayHours.forEach(hour => {
-        const block = document.createElement("div");
-        block.className = "hourly-card";
+    leading24Hours.forEach(hour => {
+        const card = document.createElement("div");
+        card.className = "hourly-card";
         
-        const formattedTime = hour.startTime ? new Date(hour.startTime).toLocaleTimeString([], { hour: '2-digit' }) : "--";
-        const assetIndex = parseNwsUrlToAssetIndex(hour.icon);
-        const imgPath = generateLocalAssetPath(assetIndex);
+        const timeFormatted = new Date(hour.startTime).toLocaleTimeString([], { hour: '2-digit' });
+        const iconIndex = mapForecastToAssetIndex(hour.shortForecast, hour.isDaytime);
         
-        block.innerHTML = `
-            <span class="time">${formattedTime}</span>
-            <img src="${imgPath}" alt="Condition indicator" class="timeline-icon" />
-            <span class="temp">${hour.temperature}</span>
+        card.innerHTML = `
+            <span class="time">${timeFormatted}</span>
+            <img src="${formatAssetPathString(iconIndex)}" alt="Timeline icon" class="timeline-icon" />
+            <span class="temp">${hour.temperature}°</span>
         `;
-        scrollContainer.appendChild(block);
+        container.appendChild(card);
     });
 }
 
 function renderDailyForecast(periods) {
-    const listContainer = document.getElementById("daily-container") || document.querySelector(".daily-forecast, .forecast-list");
-    if (!listContainer || !periods) return;
+    const container = document.getElementById("daily-container");
+    if (!container || !periods) return;
     
-    listContainer.innerHTML = "";
-    const weeklyForecastPeriods = periods.slice(0, 10);
+    container.innerHTML = "";
     
-    weeklyForecastPeriods.forEach(period => {
+    periods.forEach(period => {
         const row = document.createElement("div");
         row.className = "forecast-row";
         
-        const assetIndex = parseNwsUrlToAssetIndex(period.icon);
-        const imgPath = generateLocalAssetPath(assetIndex);
+        const iconIndex = mapForecastToAssetIndex(period.shortForecast, period.isDaytime);
         
         row.innerHTML = `
-            <span class="day-name">${period.name || "Forecast"}</span>
-            <img src="${imgPath}" alt="Forecast graphic" class="row-icon" />
-            <span class="row-temp">${period.temperature}</span>
-            <span class="row-desc">${period.shortForecast || ""}</span>
+            <span class="day-name">${period.name}</span>
+            <img src="${formatAssetPathString(iconIndex)}" alt="Forecast icon" class="row-icon" />
+            <span class="row-temp">${period.temperature}°</span>
+            <span class="row-desc">${period.shortForecast}</span>
         `;
-        listContainer.appendChild(row);
-    });
-}
-
-function populateMetricCard(label, value) {
-    const rows = document.querySelectorAll(".metric-row, .atmospheric-metrics div, .detail-item");
-    rows.forEach(row => {
-        if (row.textContent.toLowerCase().includes(label.toLowerCase())) {
-            const targetSpan = row.querySelector("span:last-child, .value, p");
-            if (targetSpan) targetSpan.textContent = value;
-        }
+        container.appendChild(row);
     });
 }
 
 // =================================================================
-// 5. ASSET TRANSFERENCE MANAGER (Yahoo 0-47 Matrix Alignment)
+// 6. STRICT INTERPRETATION PIPELINE (0-47 Asset Allocation Matrix)
 // =================================================================
-function generateLocalAssetPath(code) {
-    const numericCode = parseInt(code, 10);
-    if (isNaN(numericCode) || numericCode < 0 || numericCode > 47) return "icons/na.png";
-    return `icons/${String(numericCode).padStart(2, '0')}.png`;
+function formatAssetPathString(code) {
+    const parsed = parseInt(code, 10);
+    if (isNaN(parsed) || parsed < 0 || parsed > 47) return "icons/44.png";
+    return `icons/${String(parsed).padStart(2, '0')}.png`;
 }
 
-function parseNwsUrlToAssetIndex(url) {
-    if (!url) return 32; 
-    const addressString = url.toLowerCase();
-    const isNight = addressString.includes("/night/") || addressString.includes("night");
+function mapForecastToAssetIndex(forecastText, isDay) {
+    if (!forecastText) return 44;
+    const desc = forecastText.toLowerCase();
     
-    // Convective / Severe Outbreaks
-    if (addressString.includes("tornado")) return 0;
-    if (addressString.includes("tsra") || addressString.includes("thunderstorm") || addressString.includes("scttsra")) return 4;
+    // Convective Systems & Severe
+    if (desc.includes("tornado")) return 0;
+    if (desc.includes("hurricane") || desc.includes("typhoon")) return 2;
+    if (desc.includes("tropical storm")) return 1;
+    if (desc.includes("severe") || desc.includes("strong thunderstorm")) return 3;
     
-    // Solid & Freezing Phases
-    if (addressString.includes("blizzard")) return 43;
-    if (addressString.includes("snow")) return 16;
-    if (addressString.includes("fzra") || addressString.includes("sleet") || addressString.includes("mix")) return 18;
+    // Thunderstorm Core Variations
+    if (desc.includes("thunderstorm") || desc.includes("tsra")) {
+        if (desc.includes("scattered")) return isDay ? 38 : 47;
+        if (desc.includes("isolated")) return 37;
+        return 4;
+    }
+    
+    // Solid Transitions / Winter Mixes
+    if (desc.includes("blizzard")) return 43;
+    if (desc.includes("heavy snow")) return 42;
+    if (desc.includes("heavy rain")) return 40;
+    
+    if (desc.includes("mix") || desc.includes("wintry")) return 7;
+    if (desc.includes("sleet") || desc.includes("rain and sleet")) return 18;
+    if (desc.includes("freezing rain") || desc.includes("fzra")) return 10;
+    if (desc.includes("freezing drizzle")) return 8;
+    
+    if (desc.includes("snow showers") || desc.includes("shsn")) {
+        if (desc.includes("scattered")) return isDay ? 41 : 46;
+        return 14;
+    }
+    if (desc.includes("flurries")) return 13;
+    if (desc.includes("blowing snow") || desc.includes("drifting snow")) return 15;
+    if (desc.includes("snow")) return 16;
+    if (desc.includes("hail") || desc.includes("mixed rain and hail")) return 35;
     
     // Liquid Conditions
-    if (addressString.includes("rain") || addressString.includes("shra") || addressString.includes("hi_shwrs")) return 11;
-    if (addressString.includes("drizzle")) return 9;
+    if (desc.includes("showers") || desc.includes("shra")) {
+        if (desc.includes("scattered")) return isDay ? 39 : 45;
+        return 11;
+    }
+    if (desc.includes("drizzle")) return 9;
+    if (desc.includes("rain")) return 12;
     
-    // Suspended Particles & Wind
-    if (addressString.includes("fog")) return 20;
-    if (addressString.includes("haze")) return 21;
-    if (addressString.includes("smoke")) return 22;
-    if (addressString.includes("wind")) return 24;
+    // Atmospheric Obstructions & Dynamics
+    if (desc.includes("sandstorm") || desc.includes("dust")) return 19;
+    if (desc.includes("fog")) return 20;
+    if (desc.includes("haze")) return 21;
+    if (desc.includes("smoke")) return 22;
+    if (desc.includes("windy")) return 24;
+    if (desc.includes("breezy")) return 23;
+    if (desc.includes("cold") || desc.includes("frigid")) return 25;
+    if (desc.includes("hot")) return 36;
     
-    // Sky Cover Scale Mapping Parameters
-    if (addressString.includes("ovc") || addressString.includes("cloudy")) return 26;
-    if (addressString.includes("bkn")) return isNight ? 27 : 28;
-    if (addressString.includes("sct") || addressString.includes("partly")) return isNight ? 29 : 30;
-    if (addressString.includes("few")) return isNight ? 33 : 34;
-    if (addressString.includes("skc") || addressString.includes("clear") || addressString.includes("sunny")) return isNight ? 31 : 32;
+    // Cloud Profiling Tiers
+    if (desc.includes("cloudy") || desc.includes("overcast") || desc.includes("ovc")) return 26;
+    if (desc.includes("mostly cloudy") || desc.includes("bkn")) return isDay ? 28 : 27;
+    if (desc.includes("partly cloudy") || desc.includes("sct")) return isDay ? 30 : 29;
+    if (desc.includes("mostly clear") || desc.includes("fair") || desc.includes("mostly sunny")) return isDay ? 34 : 33;
+    if (desc.includes("clear") || desc.includes("sunny") || desc.includes("skc")) return isDay ? 32 : 31;
     
-    return isNight ? 31 : 32;
+    return isDay ? 32 : 31;
 }
 
 // =================================================================
-// 6. ADVISORY & HAZARD WARNING ENGINE
+// 7. REGIONAL CONVECTIVE WARNING SYSTEMS
 // =================================================================
-async function syncRegionalHazards(lat, lon) {
-    const hazardContainer = document.getElementById("alerts-container") || document.querySelector(".alerts-box, .bulletin-card");
-    if (!hazardContainer) return;
+async function syncActiveConvectiveAlerts(lat, lon) {
+    const box = document.getElementById("alerts-container");
+    if (!box) return;
     
     try {
-        const response = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`);
+        const response = await fetch(`${NWS_API_BASE}/alerts/active?point=${lat},${lon}`);
         if (!response.ok) throw new Error();
         const data = await response.json();
-        const warningsList = data.features || [];
+        const features = data.features || [];
         
-        if (warningsList.length === 0) {
-            hazardContainer.innerHTML = `<p class="status-msg">No active weather hazards or convective warnings tracked for this sector.</p>`;
+        if (features.length === 0) {
+            box.innerHTML = `<p class="status-msg">No active atmospheric hazards tracked for this station area.</p>`;
             return;
         }
         
-        hazardContainer.innerHTML = "";
-        warningsList.forEach(alert => {
-            const properties = alert.properties;
-            if (!properties) return;
+        box.innerHTML = "";
+        features.forEach(item => {
+            const props = item.properties;
+            if (!props) return;
             const card = document.createElement("div");
             card.className = "alert-bulletin-card";
             card.innerHTML = `
-                <h4>${properties.event || "Weather Hazard Alert"}</h4>
-                <p>${properties.headline || "Meteorological data update issued by regional forecast center."}</p>
+                <h4>${props.event || "Meteorological Advisory"}</h4>
+                <p>${props.headline || "Product output initialized by tactical forecasting center."}</p>
             `;
-            hazardContainer.appendChild(card);
+            box.appendChild(card);
         });
     } catch (err) {
-        hazardContainer.innerHTML = `<p class="status-msg">Alert integration offline.</p>`;
+        box.innerHTML = `<p class="status-msg">Advisory data stream interrupted.</p>`;
     }
 }
