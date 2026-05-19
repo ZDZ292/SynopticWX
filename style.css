@@ -1,9 +1,8 @@
 /* =================================================================
-   SLATEWEATHER PRO: PREMIUM METEOROLOGICAL WORKSPACE SHEET
+   SLATEWEATHER PRO: ULTRA-TACTICAL ANIMATED ENGINE INTERFACE
    ================================================================= */
 
-/* Typography Profiles & Assets */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @font-face {
     font-family: 'Stifly';
@@ -13,18 +12,18 @@
     font-style: normal;
 }
 
-/* Structural Design Anchors */
 :root {
-    --bg-onyx: #07080a;
-    --card-slate: #101319;
-    --accent-slate: #181c26;
-    --border-dark: #1f2533;
-    --text-bright: #edf0f5;
-    --text-muted: #6c788a;
+    --bg-onyx: #050608;
+    --card-slate: #0d1015;
+    --accent-slate: #151a24;
+    --border-dark: #1b2230;
+    --text-bright: #f0f3f8;
+    --text-muted: #5e6b7e;
+    --glow-cyan: rgba(0, 242, 254, 0.15);
+    --warn-crimson: #ff3b3b;
     --radius-fluid: 4px;
 }
 
-/* Global Form Resets */
 * {
     margin: 0;
     padding: 0;
@@ -37,22 +36,43 @@ body {
     color: var(--text-bright);
     min-height: 100vh;
     padding: clamp(6px, 1.5vw, 16px);
+    padding-bottom: 80px; /* Secure clear room for bottom navigation deck */
     display: flex;
     justify-content: center;
     align-items: flex-start;
     font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
 }
 
-/* Master Fluid Container Profile */
+/* Master Container & Fluid Sizing Context */
 .app-container {
     width: 100%;
-    max-width: 900px; /* Expands smoothly into wider multi-panel frames */
+    max-width: 820px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-/* Main Dashboard Tactical Header System */
+/* Hardware Accelerated Animation Modules */
+.animate-fade-in {
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Premium Station Header System */
 .station-header {
     background-color: var(--card-slate);
     border: 1px solid var(--border-dark);
@@ -63,94 +83,206 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 
 .brand-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+}
+
+.logo-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .station-logo {
-    width: clamp(24px, 4vw, 32px);
-    height: clamp(24px, 4vw, 32px);
+    width: 28px;
+    height: 28px;
     object-fit: contain;
+    z-index: 2;
+}
+
+.logo-pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #00f2fe;
+    border-radius: 50%;
+    filter: blur(4px);
+    animation: telemetryPulse 2s infinite ease-in-out;
+    opacity: 0.2;
+    z-index: 1;
+}
+
+@keyframes telemetryPulse {
+    0% { transform: scale(0.9); opacity: 0.15; }
+    50% { transform: scale(1.3); opacity: 0.3; }
+    100% { transform: scale(0.9); opacity: 0.15; }
 }
 
 .station-title {
     font-family: 'Stifly', 'Inter', sans-serif;
-    font-size: clamp(1.1rem, 3vw, 1.4rem);
-    letter-spacing: 1.5px;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
     color: var(--text-bright);
+    text-shadow: 0 0 10px rgba(240,243,248,0.1);
 }
 
-/* Action Control Strip Input Mechanics */
+/* Control Panel Inputs */
 .control-panel {
     display: flex;
     gap: 6px;
     flex: 1;
-    max-width: 320px;
-    min-width: 220px;
+    max-width: 300px;
+    min-width: 200px;
+}
+
+.input-glow-container {
+    position: relative;
+    flex: 1;
 }
 
 .control-panel input {
-    flex: 1;
+    width: 100%;
     background-color: var(--bg-onyx);
     border: 1px solid var(--border-dark);
     color: var(--text-bright);
-    padding: 6px 10px;
+    padding: 7px 10px;
     font-size: 0.8rem;
     font-family: 'JetBrains Mono', monospace;
     border-radius: var(--radius-fluid);
     outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.control-panel input:focus {
+    border-color: #3b4a6b;
+    box-shadow: 0 0 12px var(--glow-cyan);
 }
 
 .control-panel button {
     background-color: var(--accent-slate);
     border: 1px solid var(--border-dark);
     color: var(--text-bright);
-    padding: 6px 12px;
+    padding: 7px 12px;
     font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    font-family: 'JetBrains Mono', monospace;
     border-radius: var(--radius-fluid);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: background 0.2s;
 }
 
 .control-panel button:hover {
     background-color: var(--border-dark);
 }
 
-/* Two-Column Responsive Layout Core */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 12px;
-    width: 100%;
-}
-
-.core-panel, .forecast-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* Station Data Cards */
-.main-card, .hourly-section, .daily-section, .metric-container, .alerts-box {
+/* Warning Advisory Segment */
+.alerts-box {
     background-color: var(--card-slate);
     border: 1px solid var(--border-dark);
     border-radius: var(--radius-fluid);
-    padding: 14px;
+    padding: 8px 12px;
+}
+
+.scanning-text {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    opacity: 0.8;
+}
+
+/* Clickable Interactive Alert Strips */
+.clickable-alert {
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s;
+    position: relative;
+    overflow: hidden;
+}
+
+.clickable-alert:hover {
+    transform: scale(1.005);
+    background-color: #1a0f0f;
+}
+
+.alert-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.diagnostic-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    background-color: #3d1616;
+    color: var(--warn-crimson);
+    padding: 2px 6px;
+    border-radius: 2px;
+    border: 1px solid #6b2323;
+}
+
+/* Viewport Panel Switching Arrays */
+.view-panel {
+    position: relative;
+    width: 100%;
+    min-height: 420px;
+}
+
+.dashboard-pane {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
     width: 100%;
 }
 
-/* Primary Station Module Elements */
+.dashboard-pane.active {
+    display: flex;
+}
+
+/* Pane Entry Animation Vector */
+.animate-pane-switch {
+    animation: paneSwitch 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes paneSwitch {
+    from { opacity: 0; transform: scale(0.99) translateY(4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Main Dashboard Elements */
+.main-card, .hourly-section, .daily-section, .metric-container {
+    background-color: var(--card-slate);
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-fluid);
+    padding: 16px;
+    width: 100%;
+    position: relative;
+}
+
+.live-card {
+    overflow: hidden;
+}
+
+.scan-line {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.2), transparent);
+    animation: radarScan 4s linear infinite;
+}
+
+@keyframes radarScan {
+    0% { top: 0%; }
+    100% { top: 100%; }
+}
+
 .current-weather {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
 }
 
 .location-title {
@@ -162,77 +294,96 @@ body {
 
 .main-temp {
     font-family: 'JetBrains Mono', monospace;
-    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    font-size: clamp(2.8rem, 7vw, 4rem);
     font-weight: 700;
-    letter-spacing: -2px;
-    line-height: 1.05;
-    margin: 4px 0;
+    line-height: 1;
+    margin: 6px 0;
 }
 
 .condition-text {
     font-size: 0.85rem;
-    color: var(--text-bright);
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .hi-lo {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
-/* Image Scale Controls */
 .main-weather-icon {
-    width: 68px;
-    height: 68px;
+    width: 76px;
+    height: 76px;
     object-fit: contain;
 }
 
-.timeline-icon, .row-icon {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-}
-
-/* Section Header Separators */
 .module-title {
     font-family: 'Stifly', 'Inter', sans-serif;
     font-size: 0.8rem;
     color: var(--text-muted);
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     margin-bottom: -4px;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
-/* Horizontal Scroll Strip Configuration */
-.hourly-timeline {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scroll-behavior: smooth;
+/* Grid Parameter Layout blocks */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
 }
 
-.hourly-timeline::-webkit-scrollbar {
-    height: 3px;
-}
-
-.hourly-timeline::-webkit-scrollbar-thumb {
-    background: var(--border-dark);
-    border-radius: 1px;
-}
-
-.hourly-card {
-    flex: 0 0 54px;
+.metric-row {
     background-color: var(--bg-onyx);
     border: 1px solid var(--border-dark);
     border-radius: var(--radius-fluid);
-    padding: 6px 2px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.metric-row span:first-child {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.metric-row span:last-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* 72-Hour Expanded Grid Layout Grid */
+.hourly-grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+    gap: 6px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.hourly-grid-layout::-webkit-scrollbar {
+    width: 3px;
+}
+
+.hourly-grid-layout::-webkit-scrollbar-thumb {
+    background: var(--border-dark);
+}
+
+.hourly-card {
+    background-color: var(--bg-onyx);
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-fluid);
+    padding: 10px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     text-align: center;
 }
 
@@ -247,28 +398,42 @@ body {
     font-weight: 700;
 }
 
-/* Vertical Metric List Alignment */
+.timeline-icon, .row-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+/* Hardware Entry Item Animation Nodes */
+.card-entry-anim {
+    animation: cardEntry 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardEntry {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 7-Day Extended Matrix List */
 .forecast-list {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .forecast-row {
     display: grid;
-    grid-template-columns: 110px 28px 45px 1fr;
+    grid-template-columns: 140px 32px 55px 1fr;
     align-items: center;
-    padding: 5px 0;
-    border-bottom: 1px solid #161a24;
+    padding: 8px 6px;
+    background-color: var(--bg-onyx);
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-fluid);
     font-size: 0.8rem;
 }
 
-.forecast-row:last-child {
-    border-bottom: none;
-}
-
 .day-name {
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .row-temp {
@@ -281,58 +446,221 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-left: 8px;
+    padding-left: 12px;
 }
 
-/* Parameters Metric Grid Sub-System */
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 6px;
+/* Live Radar Stream Enclosure Frame */
+.radar-frame-container {
+    width: 100%;
+    height: 400px;
+    background-color: #000;
+    border-radius: var(--radius-fluid);
+    overflow: hidden;
+    border: 1px solid var(--border-dark);
 }
 
-.metric-row {
+#radar-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Strategic Specialized Bulletins Layer */
+.bulletins-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.bulletins-container::-webkit-scrollbar {
+    width: 3px;
+}
+
+.bulletins-container::-webkit-scrollbar-thumb {
+    background: var(--border-dark);
+}
+
+.bulletin-node {
     background-color: var(--bg-onyx);
     border: 1px solid var(--border-dark);
     border-radius: var(--radius-fluid);
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    padding: 12px;
 }
 
-.metric-row span:first-child {
+.bulletin-node h5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-bright);
+}
+
+.meta-stamp {
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.65rem;
     color: var(--text-muted);
+    margin: 4px 0 8px 0;
+}
+
+.bulletin-body-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #a2adb9;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+/* Diagnostic Operational Modal Box Sheets */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(3, 4, 6, 0.85);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-box {
+    background-color: var(--card-slate);
+    border: 1px solid #331c1c;
+    border-radius: var(--radius-fluid);
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    animation: modalScale 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes modalScale {
+    from { transform: scale(0.96); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#modal-alert-title {
+    font-family: 'Stifly', 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: var(--warn-crimson);
     letter-spacing: 0.5px;
 }
 
-.metric-row span:last-child {
+#modal-close-btn {
+    background-color: var(--accent-slate);
+    border: 1px solid var(--border-dark);
+    color: var(--text-bright);
+    padding: 4px 10px;
+    font-size: 0.7rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
-    font-weight: 700;
+    border-radius: var(--radius-fluid);
+    cursor: pointer;
 }
 
-/* Tactical Weather Hazard Modules */
-.alert-bulletin-card {
-    background-color: #140d0d;
-    border: 1px solid #3d1a1a;
-    border-radius: var(--radius-fluid);
+.modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+#modal-alert-details {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: #e2e8f0;
+    white-space: pre-wrap;
+}
+
+/* Centered Bottom Tactical Control Deck Navigation Bar */
+.tactical-deck-nav {
+    position: fixed;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(13, 16, 21, 0.9);
+    border: 1px solid var(--border-dark);
+    backdrop-filter: blur(8px);
+    border-radius: 30px;
+    padding: 4px;
+    z-index: 500;
+    width: calc(100% - 24px);
+    max-width: 540px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+}
+
+.tab-scroller {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.nav-tab {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
     padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: color 0.15s, background-color 0.15s, box-shadow 0.15s;
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.nav-tab:hover {
+    color: var(--text-bright);
+}
+
+.nav-tab.active {
+    color: #00f2fe;
+    background-color: var(--accent-slate);
+    box-shadow: inset 0 0 8px rgba(0, 242, 254, 0.1);
+}
+
+/* Custom Scroll Handling for Mobile Context Components */
+@media (max-width: 480px) {
+    .nav-tab {
+        font-size: 0.65rem;
+        padding: 6px 8px;
+    }
+}
+
+.alert-bulletin-card {
+    background-color: #120909;
+    border: 1px solid #361515;
+    border-radius: var(--radius-fluid);
+    padding: 10px 12px;
     margin-top: 4px;
 }
 
 .alert-bulletin-card h4 {
     font-size: 0.8rem;
-    color: #ff5252;
+    color: var(--warn-crimson);
     font-weight: 700;
-    letter-spacing: 0.5px;
 }
 
 .alert-bulletin-card p {
     font-size: 0.75rem;
-    color: #d1aaaa;
-    margin-top: 2px;
+    color: #c9afaf;
+    margin-top: 3px;
     line-height: 1.3;
 }
 
