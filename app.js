@@ -102,6 +102,7 @@ async function fetchMeteorologicalFeeds(lat, lon) {
         if (!pointsRes.ok) throw new Error("Grid stream links unavailable");
         const pointsData = await pointsRes.json();
         
+        // Forcing hourly endpoints to provide deep 72-hour matrix structures
         const forecastDailyUrl = pointsData?.properties?.forecast;
         const forecastHourlyUrl = pointsData?.properties?.forecastHourly;
         
@@ -164,12 +165,14 @@ function renderHourlyTimeline(periods) {
     if (!container || !periods) return;
     
     container.innerHTML = "";
+    
+    // Explicit Math constraint loop parsing a full 72 hours down into the timeline grid layout
     const totalPeriods = periods.slice(0, Math.min(72, periods.length));
     
     totalPeriods.forEach((hour, index) => {
         const card = document.createElement("div");
         card.className = "hourly-card card-entry-anim";
-        card.style.animationDelay = `${index * 0.015}s`;
+        card.style.animationDelay = `${index * 0.012}s`;
         
         const timeFormatted = new Date(hour.startTime).toLocaleTimeString([], { hour: '2-digit' });
         const iconIndex = mapForecastToAssetIndex(hour.shortForecast, hour.isDaytime);
@@ -316,6 +319,9 @@ function setupModalControls() {
     }
 }
 
+// =================================================================
+// 11. MODAL GENERATION PACKETS
+// =================================================================
 function launchDiagnosticModal(title, text) {
     const overlay = document.getElementById("diagnostic-modal");
     const titleEl = document.getElementById("modal-alert-title");
@@ -329,7 +335,7 @@ function launchDiagnosticModal(title, text) {
 }
 
 // =================================================================
-// 11. STRICT 0-47 VECTOR TRANSLATION MATRIX
+// 12. STRICT 0-47 VECTOR TRANSLATION MATRIX
 // =================================================================
 function formatAssetPathString(code) {
     const parsed = parseInt(code, 10);
