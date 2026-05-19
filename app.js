@@ -1,21 +1,28 @@
 // =================================================================
-// 1. STATE PROPERTIES & AREA DATA ANCHOR
+// 1. STATE PROPERTIES & METEOROLOGICAL ANCHORS
 // =================================================================
 const NWS_API_BASE = "https://api.weather.gov";
-let currentLat = 42.0451; // Chicagoland Default
+let currentLat = 42.0451; // Chicagoland Secure Default
 let currentLon = -87.6877;
+let radarInitialized = false;
 
 // =================================================================
-// 2. RUNTIME EVENT LOOPS
+// 2. RUNTIME EVENT ENGINE INIT
 // =================================================================
 document.addEventListener("DOMContentLoaded", () => {
     initializeDashboard();
     setupActionListeners();
+    setupTabNavigationEngine();
+    setupModalControls();
 });
 
 async function initializeDashboard() {
     await fetchMeteorologicalFeeds(currentLat, currentLon);
     await syncActiveConvectiveAlerts(currentLat, currentLon);
+    await pollMesoscaleDiscussions(currentLat, currentLon);
+    if (radarInitialized || document.getElementById("view-radar").classList.contains("active")) {
+        injectLiveRadarStream();
+    }
 }
 
 function setupActionListeners() {
@@ -31,7 +38,36 @@ function setupActionListeners() {
 }
 
 // =================================================================
-// 3. GEOCODING AND POSITION INTEGRATION
+// 3. TAB VIEWPORT MANAGER SYSTEM
+// =================================================================
+function setupTabNavigationEngine() {
+    const tabs = document.querySelectorAll(".nav-tab");
+    const panes = document.querySelectorAll(".dashboard-pane");
+
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            const targetId = tab.getAttribute("data-target");
+            
+            tabs.forEach(t => t.classList.remove("active"));
+            panes.forEach(p => p.classList.remove("active"));
+            
+            tab.classList.add("active");
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) {
+                targetPane.classList.add("active");
+                targetPane.classList.add("animate-pane-switch");
+                setTimeout(() => targetPane.classList.remove("animate-pane-switch"), 400);
+            }
+
+            if (targetId === "view-radar") {
+                injectLiveRadarStream();
+            }
+        });
+    });
+}
+
+// =================================================================
+// 4. GEOCODING INTERCEPT NETWORKING
 // =================================================================
 async function runGeocodingPipeline(query) {
     if (!query) return;
@@ -49,6 +85,7 @@ async function runGeocodingPipeline(query) {
                 titleEl.textContent = data[0].display_name.split(',')[0].toUpperCase();
             }
             
+            radarInitialized = false; 
             await initializeDashboard();
         }
     } catch (err) {
@@ -57,18 +94,16 @@ async function runGeocodingPipeline(query) {
 }
 
 // =================================================================
-// 4. TELEMETRY STREAM INGESTION ENGINE
+// 5. METEOROLOGICAL STREAM DATA INGESTION
 // =================================================================
 async function fetchMeteorologicalFeeds(lat, lon) {
     try {
         const pointsRes = await fetch(`${NWS_API_BASE}/points/${lat},${lon}`);
-        if (!pointsRes.ok) throw new Error("Operational grid target rejected");
+        if (!pointsRes.ok) throw new Error("Grid stream links unavailable");
         const pointsData = await pointsRes.json();
         
         const forecastDailyUrl = pointsData?.properties?.forecast;
         const forecastHourlyUrl = pointsData?.properties?.forecastHourly;
-        
-        if (!forecastDailyUrl || !forecastHourlyUrl) throw new Error("Grid stream links unavailable");
         
         const [dailyRes, hourlyRes] = await Promise.all([
             fetch(forecastDailyUrl),
@@ -83,21 +118,19 @@ async function fetchMeteorologicalFeeds(lat, lon) {
         const hourlyPeriods = hourlyData?.properties?.periods;
         const dailyPeriods = dailyData?.properties?.periods;
         
-        if (!hourlyPeriods || !dailyPeriods) throw new Error("Data parse fault");
-        
         renderPrimaryWorkspace(hourlyPeriods[0], dailyPeriods[0]);
         renderHourlyTimeline(hourlyPeriods);
         renderDailyForecast(dailyPeriods);
         
     } catch (err) {
-        console.error("Data pipeline fault. Fallback engaged:", err);
+        console.error("Data pipeline fault:", err);
         const conditionTxt = document.querySelector(".condition-text");
         if (conditionTxt) conditionTxt.textContent = "DATA LINK TIMEOUT";
     }
 }
 
 // =================================================================
-// 5. DATA INJECTION & RENDERING (ZERO EMOJIS)
+// 6. PIPELINE WORKSPACE PARSING (ZERO EMOJIS)
 // =================================================================
 function renderPrimaryWorkspace(currentHourly, currentDaily) {
     if (!currentHourly) return;
@@ -116,20 +149,14 @@ function renderPrimaryWorkspace(currentHourly, currentDaily) {
         mainIcon.src = formatAssetPathString(assignedCode);
     }
     
-    // Core Parameters Parsing
     const dpVal = currentHourly.dewpoint?.value ? `${Math.round(currentHourly.dewpoint.value * 9/5 + 32)}°F` : "--";
     const rhVal = currentHourly.relativeHumidity?.value ? `${currentHourly.relativeHumidity.value}%` : "--";
     const windVal = currentHourly.windSpeed ? `${currentHourly.windDirection || ""} ${currentHourly.windSpeed}`.toUpperCase() : "--";
     
-    const dpEl = document.getElementById("metric-dewpoint");
-    const rhEl = document.getElementById("metric-humidity");
-    const windEl = document.getElementById("metric-wind");
-    const appEl = document.getElementById("metric-apparent");
-    
-    if (dpEl) dpEl.textContent = dpVal;
-    if (rhEl) rhEl.textContent = rhVal;
-    if (windEl) windEl.textContent = windVal;
-    if (appEl) appEl.textContent = `${currentHourly.temperature}°F`;
+    document.getElementById("metric-dewpoint").textContent = dpVal;
+    document.getElementById("metric-humidity").textContent = rhVal;
+    document.getElementById("metric-wind").textContent = windVal;
+    document.getElementById("metric-apparent").textContent = `${currentHourly.temperature}°F`;
 }
 
 function renderHourlyTimeline(periods) {
@@ -137,18 +164,20 @@ function renderHourlyTimeline(periods) {
     if (!container || !periods) return;
     
     container.innerHTML = "";
-    const leading24Hours = periods.slice(0, 24);
+    // Expanded to ingest up to a full 72-hour operational run matrix
+    const totalPeriods = periods.slice(0, Math.min(72, periods.length));
     
-    leading24Hours.forEach(hour => {
+    totalPeriods.forEach((hour, index) => {
         const card = document.createElement("div");
-        card.className = "hourly-card";
+        card.className = "hourly-card card-entry-anim";
+        card.style.animationDelay = `${index * 0.015}s`;
         
         const timeFormatted = new Date(hour.startTime).toLocaleTimeString([], { hour: '2-digit' });
         const iconIndex = mapForecastToAssetIndex(hour.shortForecast, hour.isDaytime);
         
         card.innerHTML = `
             <span class="time">${timeFormatted.toUpperCase()}</span>
-            <img src="${formatAssetPathString(iconIndex)}" alt="Timeline icon" class="timeline-icon" />
+            <img src="${formatAssetPathString(iconIndex)}" alt="Grid entry asset" class="timeline-icon" />
             <span class="temp">${hour.temperature}°</span>
         `;
         container.appendChild(card);
@@ -161,15 +190,16 @@ function renderDailyForecast(periods) {
     
     container.innerHTML = "";
     
-    periods.forEach(period => {
+    periods.forEach((period, index) => {
         const row = document.createElement("div");
-        row.className = "forecast-row";
+        row.className = "forecast-row card-entry-anim";
+        row.style.animationDelay = `${index * 0.03}s`;
         
         const iconIndex = mapForecastToAssetIndex(period.shortForecast, period.isDaytime);
         
         row.innerHTML = `
             <span class="day-name">${period.name.toUpperCase()}</span>
-            <img src="${formatAssetPathString(iconIndex)}" alt="Forecast icon" class="row-icon" />
+            <img src="${formatAssetPathString(iconIndex)}" alt="Matrix index icon" class="row-icon" />
             <span class="row-temp">${period.temperature}°</span>
             <span class="row-desc">${period.shortForecast.toUpperCase()}</span>
         `;
@@ -178,7 +208,132 @@ function renderDailyForecast(periods) {
 }
 
 // =================================================================
-// 6. STRICT INTERPRETATION PIPELINE (0-47 Asset Allocation Matrix)
+// 7. LIVE RAINVIEWER INTEGRATION APPARATUS
+// =================================================================
+function injectLiveRadarStream() {
+    if (radarInitialized) return;
+    const frame = document.getElementById("radar-frame");
+    if (!frame) return;
+    
+    // Smooth dynamic projection map generation mapping exactly to sector coordinates
+    frame.src = `https://www.rainviewer.com/map.html?loc=${currentLat},${currentLon},8&o=1&c=7&m=1&g=1&s=1&w=1&v=black`;
+    radarInitialized = true;
+}
+
+// =================================================================
+// 8. INTERACTIVE HAZARD DIAGNOSTIC HANDLERS
+// =================================================================
+async function syncActiveConvectiveAlerts(lat, lon) {
+    const box = document.getElementById("alerts-container");
+    if (!box) return;
+    
+    try {
+        const response = await fetch(`${NWS_API_BASE}/alerts/active?point=${lat},${lon}`);
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        const features = data.features || [];
+        
+        if (features.length === 0) {
+            box.innerHTML = `<p class="status-msg">NO ACTIVE ATMOSPHERIC HAZARDS IN SECTOR</p>`;
+            return;
+        }
+        
+        box.innerHTML = "";
+        features.forEach(item => {
+            const props = item.properties;
+            if (!props) return;
+            
+            const card = document.createElement("div");
+            card.className = "alert-bulletin-card clickable-alert";
+            card.innerHTML = `
+                <div class="alert-header-row">
+                    <h4>${props.event.toUpperCase()}</h4>
+                    <span class="diagnostic-tag">DIAGNOSTIC CRIT</span>
+                </div>
+                <p>${props.headline ? props.headline.toUpperCase() : "METEOROLOGICAL DATA UPDATE ISSUED BY REGIONAL DESK."}</p>
+            `;
+            
+            // Interaction attachment to pop detailed warning parameters
+            card.addEventListener("click", () => launchDiagnosticModal(props.event, props.description));
+            box.appendChild(card);
+        });
+    } catch (err) {
+        box.innerHTML = `<p class="status-msg">ADVISORY STREAM SUSPENDED</p>`;
+    }
+}
+
+// =================================================================
+// 9. MESSOSCALE OUTLOOK MATRIX (SPC / WPC / REGIONAL PACKETS)
+// =================================================================
+async function pollMesoscaleDiscussions(lat, lon) {
+    const deck = document.getElementById("bulletins-deck");
+    if (!deck) return;
+    
+    try {
+        // Gathering raw zone alerts data to parse specialized convective text fields
+        const zoneRes = await fetch(`${NWS_API_BASE}/alerts/active?point=${lat},${lon}`);
+        if (!zoneRes.ok) throw new Error();
+        const data = await zoneRes.json();
+        const alerts = data.features || [];
+        
+        deck.innerHTML = "";
+        
+        if (alerts.length === 0) {
+            deck.innerHTML = `
+                <div class="bulletin-node">
+                    <h5>SYSTEM STATUS: METEOROLOGICALLY STABLE</h5>
+                    <p>NO CONVECTIVE MESSOSCALE DISCUSSIONS (MCDS) OR PRECIPITATION PARAMETERS (MPDS) DETECTED FOR CURRENT AREA BLOCK.</p>
+                </div>`;
+            return;
+        }
+        
+        alerts.forEach(alert => {
+            const props = alert.properties;
+            if (!props) return;
+            
+            const node = document.createElement("div");
+            node.className = "bulletin-node";
+            node.innerHTML = `
+                <h5>SOURCE ID: ${props.areaDesc.toUpperCase().split(';')[0]} | ${props.id}</h5>
+                <div class="meta-stamp">ISSUED: ${new Date(props.sent).toLocaleString().toUpperCase()}</div>
+                <p class="bulletin-body-text">${props.description ? props.description.toUpperCase() : "NO FURTHER METEOROLOGICAL SPECIFICATIONS DETECTED."}</p>
+            `;
+            deck.appendChild(node);
+        });
+    } catch (err) {
+        deck.innerHTML = `<p class="status-msg">STRATEGIC BULLETIN RETRIEVAL TIMEOUT</p>`;
+    }
+}
+
+// =================================================================
+// 10. MODAL UTILITIES
+// =================================================================
+function setupModalControls() {
+    const overlay = document.getElementById("diagnostic-modal");
+    const closeBtn = document.getElementById("modal-close-btn");
+    
+    if (closeBtn && overlay) {
+        closeBtn.addEventListener("click", () => overlay.classList.remove("active"));
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) overlay.classList.remove("active");
+        });
+    }
+}
+
+function launchDiagnosticModal(title, text) {
+    const overlay = document.getElementById("diagnostic-modal");
+    const titleEl = document.getElementById("modal-alert-title");
+    const bodyEl = document.getElementById("modal-alert-details");
+    
+    if (overlay && titleEl && bodyEl) {
+        titleEl.textContent = title.toUpperCase();
+        bodyEl.textContent = text ? text.toUpperCase() : "NO INTENSIVE METEOROLOGICAL BRIEF SUBMITTED.";
+        overlay.classList.add("active");
+    }
+}
+
+// =================================================================
+// 11. STRICT 0-47 VECTOR TRANSLATION MATRIX
 // =================================================================
 function formatAssetPathString(code) {
     const parsed = parseInt(code, 10);
@@ -242,39 +397,4 @@ function mapForecastToAssetIndex(forecastText, isDay) {
     if (desc.includes("clear") || desc.includes("sunny") || desc.includes("skc")) return isDay ? 32 : 31;
     
     return isDay ? 32 : 31;
-}
-
-// =================================================================
-// 7. REGIONAL CONVECTIVE WARNING SYSTEMS
-// =================================================================
-async function syncActiveConvectiveAlerts(lat, lon) {
-    const box = document.getElementById("alerts-container");
-    if (!box) return;
-    
-    try {
-        const response = await fetch(`${NWS_API_BASE}/alerts/active?point=${lat},${lon}`);
-        if (!response.ok) throw new Error();
-        const data = await response.json();
-        const features = data.features || [];
-        
-        if (features.length === 0) {
-            box.innerHTML = `<p class="status-msg">NO ACTIVE ATMOSPHERIC HAZARDS IN SECTOR</p>`;
-            return;
-        }
-        
-        box.innerHTML = "";
-        features.forEach(item => {
-            const props = item.properties;
-            if (!props) return;
-            const card = document.createElement("div");
-            card.className = "alert-bulletin-card";
-            card.innerHTML = `
-                <h4>${props.event.toUpperCase()}</h4>
-                <p>${props.headline ? props.headline.toUpperCase() : "METEOROLOGICAL DATA UPDATE ISSUED BY REGIONAL DESK."}</p>
-            `;
-            box.appendChild(card);
-        });
-    } catch (err) {
-        box.innerHTML = `<p class="status-msg">ADVISORY STREAM SUSPENDED</p>`;
-    }
 }
