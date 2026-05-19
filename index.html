@@ -9,62 +9,76 @@
 <body>
 
     <div class="app-container">
-        <div class="control-panel">
-            <input type="text" id="searchInput" placeholder="Enter station identifiers or region...">
-            <button id="searchBtn">QUERY</button>
-        </div>
+        <header class="station-header">
+            <div class="brand-group">
+                <img src="logo.png" alt="SlateWeather PRO logo" class="station-logo">
+                <h1 class="station-title">SLATEWEATHER PRO</h1>
+            </div>
+            <div class="control-panel">
+                <input type="text" id="searchInput" placeholder="Query location or grid station...">
+                <button id="searchBtn">EXECUTE</button>
+            </div>
+        </header>
 
         <div id="alerts-container" class="alerts-box">
-            <p class="status-msg">Initializing local hazard advisory telemetry...</p>
+            <p class="status-msg">Synchronizing hazard telemetry channels...</p>
         </div>
 
-        <div class="main-card">
-            <div class="current-weather">
-                <div class="metrics-left">
-                    <h1 class="location-title">Chicago</h1>
-                    <div class="main-temp">--</div>
-                    <div class="condition-text">Connecting to national environmental feeds...</div>
-                    <div class="hi-lo">High: --</div>
+        <main class="dashboard-grid">
+            
+            <section class="core-panel">
+                <div class="main-card">
+                    <div class="current-weather">
+                        <div class="metrics-left">
+                            <h2 class="location-title">CHICAGO</h2>
+                            <div class="main-temp">--</div>
+                            <div class="condition-text">Connecting to meteorological arrays...</div>
+                            <div class="hi-lo">HIGH: --</div>
+                        </div>
+                        <div class="metrics-right">
+                            <img src="icons/44.png" alt="Dynamic condition asset" class="main-weather-icon">
+                        </div>
+                    </div>
                 </div>
-                <div class="metrics-right">
-                    <img src="icons/44.png" alt="Operational status icon" class="main-weather-icon">
-                </div>
-            </div>
-        </div>
 
-        <div class="module-title">Hourly Grid Output</div>
-        <div class="hourly-section">
-            <div id="hourly-container" class="hourly-timeline">
+                <div class="module-title">CONVECTIVE PARAMETERS</div>
+                <div class="metric-container">
+                    <div class="metrics-grid">
+                        <div class="metric-row">
+                            <span>DEWPOINT</span>
+                            <span id="metric-dewpoint" class="value">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>RELATIVE HUMIDITY</span>
+                            <span id="metric-humidity" class="value">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>WIND VELOCITY</span>
+                            <span id="metric-wind" class="value">--</span>
+                        </div>
+                        <div class="metric-row">
+                            <span>APPARENT TEMP</span>
+                            <span id="metric-apparent" class="value">--</span>
+                        </div>
+                    </div>
                 </div>
-        </div>
+            </section>
 
-        <div class="module-title">Extended Strategic Outlook</div>
-        <div class="daily-section">
-            <div id="daily-container" class="forecast-list">
+            <section class="forecast-panel">
+                <div class="module-title">HOURLY GRID TIMELINE</div>
+                <div class="hourly-section">
+                    <div id="hourly-container" class="hourly-timeline">
+                        </div>
                 </div>
-        </div>
 
-        <div class="module-title">Convective Parameters & Mechanics</div>
-        <div class="metric-container">
-            <div class="metrics-grid">
-                <div class="metric-row">
-                    <span>Dewpoint</span>
-                    <span id="metric-dewpoint" class="value">--</span>
+                <div class="module-title">EXTENDED STRATEGIC OUTLOOK</div>
+                <div class="daily-section">
+                    <div id="daily-container" class="forecast-list">
+                        </div>
                 </div>
-                <div class="metric-row">
-                    <span>Relative Humidity</span>
-                    <span id="metric-humidity" class="value">--</span>
-                </div>
-                <div class="metric-row">
-                    <span>Wind Velocity</span>
-                    <span id="metric-wind" class="value">--</span>
-                </div>
-                <div class="metric-row">
-                    <span>Apparent Temp</span>
-                    <span id="metric-apparent" class="value">--</span>
-                </div>
-            </div>
-        </div>
+            </section>
+
+        </main>
     </div>
 
     <script src="app.js"></script>
