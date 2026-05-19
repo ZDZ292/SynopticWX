@@ -2,8 +2,8 @@
 // 1. STATE PROPERTIES & METEOROLOGICAL ANCHORS
 // =================================================================
 const NWS_API_BASE = "https://api.weather.gov";
-let currentLat = 42.0451; // Chicagoland Secure Default
-let currentLon = -87.6877;
+let currentLat = 41.5934; // Locked to Gary, IN Station Sector Coordinates
+let currentLon = -87.3464;
 let radarInitialized = false;
 
 // =================================================================
@@ -164,7 +164,6 @@ function renderHourlyTimeline(periods) {
     if (!container || !periods) return;
     
     container.innerHTML = "";
-    // Expanded to ingest up to a full 72-hour operational run matrix
     const totalPeriods = periods.slice(0, Math.min(72, periods.length));
     
     totalPeriods.forEach((hour, index) => {
@@ -215,7 +214,6 @@ function injectLiveRadarStream() {
     const frame = document.getElementById("radar-frame");
     if (!frame) return;
     
-    // Smooth dynamic projection map generation mapping exactly to sector coordinates
     frame.src = `https://www.rainviewer.com/map.html?loc=${currentLat},${currentLon},8&o=1&c=7&m=1&g=1&s=1&w=1&v=black`;
     radarInitialized = true;
 }
@@ -253,7 +251,6 @@ async function syncActiveConvectiveAlerts(lat, lon) {
                 <p>${props.headline ? props.headline.toUpperCase() : "METEOROLOGICAL DATA UPDATE ISSUED BY REGIONAL DESK."}</p>
             `;
             
-            // Interaction attachment to pop detailed warning parameters
             card.addEventListener("click", () => launchDiagnosticModal(props.event, props.description));
             box.appendChild(card);
         });
@@ -270,7 +267,6 @@ async function pollMesoscaleDiscussions(lat, lon) {
     if (!deck) return;
     
     try {
-        // Gathering raw zone alerts data to parse specialized convective text fields
         const zoneRes = await fetch(`${NWS_API_BASE}/alerts/active?point=${lat},${lon}`);
         if (!zoneRes.ok) throw new Error();
         const data = await zoneRes.json();
