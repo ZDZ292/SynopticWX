@@ -1,60 +1,106 @@
 /* =================================================================
-   SLATEWEATHER PRO: FLAT METEOROLOGICAL MODULE SHEET
+   SLATEWEATHER PRO: PREMIUM METEOROLOGICAL WORKSPACE SHEET
    ================================================================= */
 
-/* Core Theme Matrix Constants */
+/* Typography Profiles & Assets */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+@font-face {
+    font-family: 'Stifly';
+    src: url('Stifly.ttf') format('truetype'),
+         url('stifly.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Structural Design Anchors */
 :root {
-    --bg-main: #090a0d;
-    --card-slate: #12151c;
-    --accent-slate: #1b1e28;
-    --border-dark: #232834;
+    --bg-onyx: #07080a;
+    --card-slate: #101319;
+    --accent-slate: #181c26;
+    --border-dark: #1f2533;
     --text-bright: #edf0f5;
-    --text-muted: #7e899a;
+    --text-muted: #6c788a;
     --radius-fluid: 4px;
 }
 
-/* Base Structural Overrides */
+/* Global Form Resets */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
 }
 
 body {
-    background-color: var(--bg-main);
+    background-color: var(--bg-onyx);
     color: var(--text-bright);
     min-height: 100vh;
-    padding: clamp(6px, 1.2vw, 14px);
+    padding: clamp(6px, 1.5vw, 16px);
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    font-family: 'Inter', sans-serif;
 }
 
-/* Fluid Workspace Sizing Context */
+/* Master Fluid Container Profile */
 .app-container {
     width: 100%;
-    max-width: 680px; /* Tighter layout to enhance data scannability */
+    max-width: 900px; /* Expands smoothly into wider multi-panel frames */
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-/* Control Row Elements */
+/* Main Dashboard Tactical Header System */
+.station-header {
+    background-color: var(--card-slate);
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-fluid);
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.brand-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.station-logo {
+    width: clamp(24px, 4vw, 32px);
+    height: clamp(24px, 4vw, 32px);
+    object-fit: contain;
+}
+
+.station-title {
+    font-family: 'Stifly', 'Inter', sans-serif;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    letter-spacing: 1.5px;
+    color: var(--text-bright);
+}
+
+/* Action Control Strip Input Mechanics */
 .control-panel {
     display: flex;
-    gap: 8px;
-    width: 100%;
+    gap: 6px;
+    flex: 1;
+    max-width: 320px;
+    min-width: 220px;
 }
 
 .control-panel input {
     flex: 1;
-    background-color: var(--card-slate);
+    background-color: var(--bg-onyx);
     border: 1px solid var(--border-dark);
     color: var(--text-bright);
-    padding: 8px 12px;
-    font-size: 0.85rem;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
     border-radius: var(--radius-fluid);
     outline: none;
 }
@@ -63,9 +109,10 @@ body {
     background-color: var(--accent-slate);
     border: 1px solid var(--border-dark);
     color: var(--text-bright);
-    padding: 8px 16px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     border-radius: var(--radius-fluid);
     cursor: pointer;
     transition: background 0.15s ease;
@@ -75,7 +122,21 @@ body {
     background-color: var(--border-dark);
 }
 
-/* Core Dashboard Station Modules */
+/* Two-Column Responsive Layout Core */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.core-panel, .forecast-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Station Data Cards */
 .main-card, .hourly-section, .daily-section, .metric-container, .alerts-box {
     background-color: var(--card-slate);
     border: 1px solid var(--border-dark);
@@ -84,69 +145,70 @@ body {
     width: 100%;
 }
 
-/* Primary Header Card Blocks */
+/* Primary Station Module Elements */
 .current-weather {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
 }
 
 .location-title {
+    font-family: 'Stifly', 'Inter', sans-serif;
     font-size: 1.1rem;
-    font-weight: 600;
     color: var(--text-muted);
-    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .main-temp {
-    font-size: clamp(2.2rem, 6vw, 3.8rem);
-    font-weight: 800;
-    letter-spacing: -1.5px;
-    line-height: 1.1;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1.05;
     margin: 4px 0;
 }
 
 .condition-text {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-bright);
+    font-weight: 500;
 }
 
 .hi-lo {
-    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: 4px;
 }
 
-/* Asset Sizing Footprints */
+/* Image Scale Controls */
 .main-weather-icon {
-    width: 72px;
-    height: 72px;
+    width: 68px;
+    height: 68px;
     object-fit: contain;
 }
 
 .timeline-icon, .row-icon {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     object-fit: contain;
 }
 
-/* Structural Metadata Dividers */
+/* Section Header Separators */
 .module-title {
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-family: 'Stifly', 'Inter', sans-serif;
+    font-size: 0.8rem;
     color: var(--text-muted);
-    text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: -4px;
     margin-top: 4px;
 }
 
-/* Horizontal Scroll Strip */
+/* Horizontal Scroll Strip Configuration */
 .hourly-timeline {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     overflow-x: auto;
     padding-bottom: 4px;
     scroll-behavior: smooth;
@@ -163,24 +225,24 @@ body {
 
 .hourly-card {
     flex: 0 0 54px;
-    background-color: var(--bg-main);
+    background-color: var(--bg-onyx);
     border: 1px solid var(--border-dark);
     border-radius: var(--radius-fluid);
-    padding: 8px 4px;
+    padding: 6px 2px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     text-align: center;
 }
 
 .hourly-card .time {
     font-size: 0.65rem;
     color: var(--text-muted);
-    text-transform: uppercase;
 }
 
 .hourly-card .temp {
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.8rem;
     font-weight: 700;
 }
@@ -194,11 +256,11 @@ body {
 
 .forecast-row {
     display: grid;
-    grid-template-columns: 110px 32px 45px 1fr;
+    grid-template-columns: 110px 28px 45px 1fr;
     align-items: center;
-    padding: 6px 0;
-    border-bottom: 1px solid #191d27;
-    font-size: 0.85rem;
+    padding: 5px 0;
+    border-bottom: 1px solid #161a24;
+    font-size: 0.8rem;
 }
 
 .forecast-row:last-child {
@@ -207,12 +269,11 @@ body {
 
 .day-name {
     font-weight: 500;
-    color: var(--text-bright);
 }
 
 .row-temp {
+    font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
-    color: var(--text-bright);
 }
 
 .row-desc {
@@ -220,63 +281,63 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-left: 10px;
+    padding-left: 8px;
 }
 
 /* Parameters Metric Grid Sub-System */
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 8px;
+    gap: 6px;
 }
 
 .metric-row {
-    background-color: var(--bg-main);
+    background-color: var(--bg-onyx);
     border: 1px solid var(--border-dark);
     border-radius: var(--radius-fluid);
-    padding: 10px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .metric-row span:first-child {
     font-size: 0.65rem;
     color: var(--text-muted);
-    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .metric-row span:last-child {
-    font-size: 0.9rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
     font-weight: 700;
 }
 
-/* Tactical Alert Modules */
+/* Tactical Weather Hazard Modules */
 .alert-bulletin-card {
-    background-color: #160f0f;
-    border: 1px solid #421c1c;
+    background-color: #140d0d;
+    border: 1px solid #3d1a1a;
     border-radius: var(--radius-fluid);
-    padding: 10px 12px;
+    padding: 8px 12px;
     margin-top: 4px;
 }
 
 .alert-bulletin-card h4 {
-    font-size: 0.85rem;
-    color: #ff5c5c;
+    font-size: 0.8rem;
+    color: #ff5252;
     font-weight: 700;
-    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .alert-bulletin-card p {
     font-size: 0.75rem;
-    color: #dfb2b2;
-    margin-top: 3px;
+    color: #d1aaaa;
+    margin-top: 2px;
     line-height: 1.3;
 }
 
 .status-msg {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     text-align: center;
 }
