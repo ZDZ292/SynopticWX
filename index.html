@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SlateWeather PRO | Tactical Control Center</title>
+    <title>Synoptic Weather | Tactical Control Center</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,10 +12,10 @@
         <header class="station-header animate-fade-in">
             <div class="brand-group">
                 <div class="logo-wrapper">
-                    <img src="logo.png" alt="SlateWeather PRO Logo" class="station-logo" onerror="this.style.display='none'">
+                    <img src="logo.png" alt="Synoptic Weather Logo" class="station-logo" onerror="this.style.display='none'">
                     <div class="logo-pulse"></div>
                 </div>
-                <h1 class="station-title">SLATEWEATHER PRO</h1>
+                <h1 class="station-title">SYNOPTIC WEATHER</h1>
             </div>
             <div class="control-panel">
                 <div class="input-glow-container">
@@ -113,17 +113,17 @@
                 </div>
             </div>
         </div>
-
-        <nav class="tactical-deck-nav animate-slide-up">
-            <div class="tab-scroller">
-                <button class="nav-tab active" data-target="view-current">CURRENT</button>
-                <button class="nav-tab" data-target="view-outlook">OUTLOOK</button>
-                <button class="nav-tab" data-target="view-hourly">HOURLY</button>
-                <button class="nav-tab" data-target="view-radar" id="radar-tab-btn">RADAR</button>
-                <button class="nav-tab" data-target="view-bulletins">BULLETINS</button>
-            </div>
-        </nav>
     </div>
+
+    <nav class="tactical-deck-nav animate-slide-up">
+        <div class="tab-scroller">
+            <button class="nav-tab active" data-target="view-current">CURRENT</button>
+            <button class="nav-tab" data-target="view-outlook">OUTLOOK</button>
+            <button class="nav-tab" data-target="view-hourly">HOURLY</button>
+            <button class="nav-tab" data-target="view-radar" id="radar-tab-btn">RADAR</button>
+            <button class="nav-tab" data-target="view-bulletins">BULLETINS</button>
+        </div>
+    </nav>
 
     <script src="app.js"></script>
 </body>
