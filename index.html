@@ -2,120 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SynopticWeather</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlateWeather PRO</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="app-top-header">
-        <div class="header-main-row">
-            <div class="brand-logo-container">
-                <img src="logo.png" alt="SynopticWeather" class="app-brand-logo" onerror="this.style.display='none';">
-            </div>
-            <div class="search-pill-wrapper">
-                <input type="text" id="location-input" placeholder="New York City">
-                <button onclick="handleSearch()" class="search-btn">🔍</button>
-            </div>
+    <div class="app-container">
+        <div class="control-panel">
+            <input type="text" id="searchInput" placeholder="Enter station identifiers or region...">
+            <button id="searchBtn">QUERY</button>
         </div>
-        
-        <nav class="app-section-nav">
-            <div class="pill-track">
-                <button class="section-pill active" onclick="switchSection('sec-today')">Today</button>
-                <button class="section-pill" onclick="switchSection('sec-hourly')">Hourly</button>
-                <button class="section-pill" onclick="switchSection('sec-daily')">Daily</button>
-                <button class="section-pill" onclick="switchSection('sec-storms')">Storms</button>
-            </div>
-        </nav>
-    </header>
 
-    <main class="app-container">
-        
-        <div id="sec-today" class="view-section active-view">
-            <div class="hero-weather-block">
-                <div class="hero-row">
-                    <h1 id="obs-temp" class="giant-temp-text">--°</h1>
-                    <div class="hero-icon-container">
-                        <img id="current-weather-icon" src="icons/na.png" alt="Weather Status" class="animated-main-icon" onerror="this.src='icons/na.png';">
-                        <p id="obs-phrase" class="condition-subtitle">Syncing Grids...</p>
-                    </div>
-                </div>
-                
-                <div class="hero-submetrics">
-                    <span id="obs-feels">Feels like --°</span>
-                    <span class="pipe">|</span>
-                    <span id="obs-hilo">H: --°  L: --°</span>
-                </div>
-                <div class="rain-chance-line">Next hr rain chance: <span id="obs-rain-chance">0%</span></div>
-            </div>
+        <div id="alerts-container" class="alerts-box">
+            <p class="status-msg">Initializing local hazard advisory telemetry...</p>
+        </div>
 
-            <div class="app-card card-dark">
-                <div class="card-arrow-header">
-                    <h3>Today's Outlook</h3>
-                    <span class="chevron-right">›</span>
+        <div class="main-card">
+            <div class="current-weather">
+                <div class="metrics-left">
+                    <h1 class="location-title">Chicago</h1>
+                    <div class="main-temp">--</div>
+                    <div class="condition-text">Connecting to national environmental feeds...</div>
+                    <div class="hi-lo">High: --</div>
                 </div>
-                <p id="outlook-text-summary" class="outlook-paragraph">Connecting to diagnostic weather data streams...</p>
-            </div>
-
-            <div class="app-card">
-                <h3>Atmospheric Metrics</h3>
-                <div class="metrics-list">
-                    <div class="m-row"><span>Dewpoint</span><strong id="obs-dewpoint">--°F</strong></div>
-                    <div class="m-row"><span>Relative Humidity</span><strong id="obs-humidity">--%</strong></div>
-                    <div class="m-row"><span>Wind Velocity</span><strong id="obs-wind">-- mph</strong></div>
-                    <div class="m-row"><span>Apparent Temperature</span><strong id="obs-heat">--°F</strong></div>
-                    <div class="m-row"><span>Precipitation (Hourly)</span><strong id="obs-rain-val">0.00 in</strong></div>
+                <div class="metrics-right">
+                    <img src="icons/44.png" alt="Operational status icon" class="main-weather-icon">
                 </div>
             </div>
         </div>
 
-        <div id="sec-hourly" class="view-section">
-            <div class="app-card">
-                <h3>24-Hour Timeline</h3>
-                <div id="hourly-scroller" class="horizontal-scroller-box"></div>
-            </div>
+        <div class="module-title">Hourly Grid Output</div>
+        <div class="hourly-section">
+            <div id="hourly-container" class="hourly-timeline">
+                </div>
         </div>
 
-        <div id="sec-daily" class="view-section">
-            <div class="app-card">
-                <h3>Extended 7-Day Outlook</h3>
-                <div id="daily-stack" class="vertical-stack-box"></div>
-            </div>
+        <div class="module-title">Extended Strategic Outlook</div>
+        <div class="daily-section">
+            <div id="daily-container" class="forecast-list">
+                </div>
         </div>
 
-        <div id="sec-radar" class="view-section">
-            <div class="app-card no-pad frame-card">
-                <iframe id="radar-frame" src="" loading="lazy"></iframe>
+        <div class="module-title">Convective Parameters & Mechanics</div>
+        <div class="metric-container">
+            <div class="metrics-grid">
+                <div class="metric-row">
+                    <span>Dewpoint</span>
+                    <span id="metric-dewpoint" class="value">--</span>
+                </div>
+                <div class="metric-row">
+                    <span>Relative Humidity</span>
+                    <span id="metric-humidity" class="value">--</span>
+                </div>
+                <div class="metric-row">
+                    <span>Wind Velocity</span>
+                    <span id="metric-wind" class="value">--</span>
+                </div>
+                <div class="metric-row">
+                    <span>Apparent Temp</span>
+                    <span id="metric-apparent" class="value">--</span>
+                </div>
             </div>
         </div>
-
-        <div id="sec-storms" class="view-section">
-            <div class="app-card">
-                <h3 class="text-alert">Active Weather Alerts</h3>
-                <div id="alert-feed-box" class="feed-scroller"></div>
-            </div>
-            <div class="app-card">
-                <h3>SPC Convective Outlook Loop</h3>
-                <img src="https://www.spc.noaa.gov/products/activity_loop.gif" alt="SPC Outlook Map" class="spc-fluid-img">
-            </div>
-        </div>
-
-    </main>
-
-    <footer class="app-bottom-nav">
-        <button class="nav-item active" onclick="switchSection('sec-today')">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-label">Home</span>
-        </button>
-        <button class="nav-item" onclick="switchSection('sec-storms')">
-            <span class="nav-icon">⛈️</span>
-            <span class="nav-label">Storms</span>
-        </button>
-        <button class="nav-item" onclick="switchSection('sec-radar')">
-            <span class="nav-icon">🌀</span>
-            <span class="nav-label">Radar</span>
-        </button>
-    </footer>
+    </div>
 
     <script src="app.js"></script>
 </body>
